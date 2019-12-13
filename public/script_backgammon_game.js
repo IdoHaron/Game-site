@@ -17,6 +17,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
  other: new PIXI.Sprite.from("backgammon/soldiers/piece-other.png")};
  board.width = app.screen.width*board_ratio;
  board.height = app.screen.height;
+ board.x = (app.screen.width-board.width)/2;
  //#endregion
 
  //#region comunication
