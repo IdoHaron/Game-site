@@ -2,8 +2,14 @@
 
 //#region set-app
 const socket =  io.connect("http://localhost:3000");
-const app = new PIXI.Application({resizeTo: window});
+const app = new PIXI.Application({
+    resizeTo: window
+});
+app.view.style.height = window.innerHeight+ 'px';
+app.view.style.width = window.innerWidth+ 'px';
 const container = new PIXI.Container();
+container.height = window.innerHeight;
+container.width = window.innerWidth;
 let user_cube = [];
 let other_cuber=[];
 document.body.appendChild(app.view);
