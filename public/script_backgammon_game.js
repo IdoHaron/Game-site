@@ -112,26 +112,26 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let i;
         let index1;
         for (let index = 0; index < 2; index++) {
-            for ( index1 = 0; index1 < 12; index++) {
+            for ( index1 = 0; index1 < 12; index1++) {
                 if(index1==6)
                     location[0]+=jmp_x;
-                for( i=0; i<board[index]; i++)
+                for( i=0; i<board[index1]; i++)
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Soldier);
-                if(board[index]<0){
-                 for( i=0; i>board[index]; i--)
+                if(board[index1]<0){
+                 for( i=0; i>board[index1]; i--)
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
                 }
                 location[0]+=jmp_x;
             }
             location[1] = y_afterline-y_afterline/60;
             location[0] = start_place[0];
-            for ( index1 = 0; index1 < 12; index++) {
+            for ( index1 = 0; index1 < 12; index1++) {
                 if(index1==6)
                     location[0]+=jmp_x;
-                for( i=0; i<board[index+12]; i++)
+                for( i=0; i<board[index1+12]; i++)
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Soldier);
-                if(board[index+12]<0){
-                    for( i=0; i>board[index]; i--)
+                if(board[index1+12]<0){
+                    for( i=0; i>board[index1+12]; i--)
                         print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
                 }
                 location[0]+=jmp_x;
