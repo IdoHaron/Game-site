@@ -53,11 +53,13 @@ io.on('connection', (socket)=>{
         io.to(id).emit("aprove-backgammon-game", users[convert_SocketToUser[socket.id]], socket.id);
     })
     socket.on("create-backgammon-game", id=>{
-        users[convert_SocketToUser[id]].opponent = users[convert_SocketToUser[socket.id]];
+        users[convert_SocketToUser[id]].opponent = convert_SocketToUser[socket.id];
         users[convert_SocketToUser[socket.id]].opponent = convert_SocketToUser[id];
         users[convert_SocketToUser[id]].index = convert_SocketToUser[id];
         users[convert_SocketToUser[socket.id]].index = convert_SocketToUser[socket.id];
         backgammon_games[backgammon_games_num] = new game(users[convert_SocketToUser[id]], users[convert_SocketToUser[socket.id]], backgammon_games_num) ;
+        backgammon_games[backgammon_games_num].set_cubes();
+        console.log(backgammon_games[backgammon_games_num]);
         io.to(id).emit("enter-backgammon-game", backgammon_games_num);
         socket.emit("enter-backgammon-game", backgammon_games_num);
         backgammon_games_num++;
@@ -82,6 +84,7 @@ io.on('connection', (socket)=>{
             }
             else
                 socket.emit("close-page");
+            io.to(backgammon_games[game].user1.id).emit("turn");  
         })
     //#endregion
 });
@@ -122,9 +125,10 @@ server.listen(3000);
             }
             if(this.user2===undefined)
                 throw (new Error("user2 undefineds"));
-            this.user1.set_numD(num_couple);
-            this.user2.set_numD(num_couple);
+            this.user1.numD = num_couple;
+            this.user2.numD = num_couple;
             for(;i<num_couple; i++){
+                num_saver=0;
                 while(num_saver==0){
                     num_saver = Math.ceil(Math.random()*6);
                 }
@@ -148,6 +152,8 @@ server.listen(3000);
             let num_saver1 = 0;
             let num_saver2 = 0;
             for(let i = 0; i<num_cubes; i++){
+                num_saver1=0;
+                num_saver2=0;
                 while(num_saver1==0){
                     num_saver1 = Math.ceil(Math.random()*6);
                 }
