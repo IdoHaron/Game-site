@@ -6,7 +6,7 @@ const app = new PIXI.Application({
     resizeTo: window
 });
 let width = window.innerWidth;
-let board= [5,0, 0,0,-3, 0, -5, 0, 0, 0, 0, 2, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
+let board_loadout= [5,0, 0,0,-3, 0, -5, 0, 0, 0, 0, 2, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
 app.view.style.height = window.innerHeight+ 'px';
 app.view.style.width = window.innerWidth+ 'px';
 const container = new PIXI.Container();
@@ -36,10 +36,15 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
  socket.on("backgammon-boardLoad", (user, other)=>{
      console.log("backgammon-boardLoad");
     let loc = [0,0];
+    board.zIndex = 0;
      app.stage.addChild(board);
     load_user_cubes(user, true, loc);
     loc = [(app.screen.width+board.width)/2, 0];
     load_user_cubes(other, false, loc);
+    loc = [(app.screen.width-board.width)/2, board.height/50];
+    soldier.user.zIndex = 1;
+    soldier.other.zIndex = 1;
+    load_soldier(soldier.user, soldier.other, loc);
  });
  socket.on("close-page", ()=>{
      window.close();
@@ -115,10 +120,10 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             for ( index1 = 0; index1 < 12; index1++) {
                 if(index1==6)
                     location[0]+=jmp_x;
-                for( i=0; i<board[index1]; i++)
+                for( i=0; i<board_loadout[index1]; i++)
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Soldier);
-                if(board[index1]<0){
-                 for( i=0; i>board[index1]; i--)
+                if(board_loadout[index1]<0){
+                 for( i=0; i>board_loadout[index1]; i--)
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
                 }
                 location[0]+=jmp_x;
@@ -128,10 +133,10 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             for ( index1 = 0; index1 < 12; index1++) {
                 if(index1==6)
                     location[0]+=jmp_x;
-                for( i=0; i<board[index1+12]; i++)
+                for( i=0; i<board_loadout[index1+12]; i++)
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Soldier);
-                if(board[index1+12]<0){
-                    for( i=0; i>board[index1+12]; i--)
+                if(board_loadout[index1+12]<0){
+                    for( i=0; i>board_loadout[index1+12]; i--)
                         print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
                 }
                 location[0]+=jmp_x;
