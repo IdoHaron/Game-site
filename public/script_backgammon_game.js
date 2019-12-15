@@ -1,3 +1,4 @@
+import { Sprite } from "pixi.js";
 
 
 //#region set-app
@@ -44,7 +45,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
     loc = [(app.screen.width-board.width)/2, board.height/50];
     soldier.user.zIndex = 1;
     soldier.other.zIndex = 1;
-    load_soldier(soldier.user, soldier.other, loc);
+    load_soldier(loc);
  });
  socket.on("close-page", ()=>{
      window.close();
@@ -109,8 +110,10 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             app.stage.removeChild(e.target);
         });
     }
-    function load_soldier(Sprite_Soldier, Sprite_Other, start_place){
+    function load_soldier(start_place){
         let location = [start_place[0], start_place[1]];
+        let Sprite_Soldier;
+        let Sprite_Other
         let jmp_x = board.width/12;
         let jmp_y = Sprite_Soldier.height;
         let y_afterline = board.height;
@@ -120,11 +123,15 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             for ( index1 = 0; index1 < 12; index1++) {
                 if(index1==6)
                     location[0]+=jmp_x;
-                for( i=0; i<board_loadout[index1]; i++)
+                for( i=0; i<board_loadout[index1]; i++){
+                    Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Soldier);
+                }
                 if(board_loadout[index1]<0){
-                 for( i=0; i>board_loadout[index1]; i--)
+                 for( i=0; i>board_loadout[index1]; i--){
+                    Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
+                 }
                 }
                 location[0]+=jmp_x;
             }
@@ -133,11 +140,15 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             for ( index1 = 0; index1 < 12; index1++) {
                 if(index1==6)
                     location[0]+=jmp_x;
-                for( i=0; i<board_loadout[index1+12]; i++)
+                for( i=0; i<board_loadout[index1+12]; i++){
+                    Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
                     print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Soldier);
+                }
                 if(board_loadout[index1+12]<0){
-                    for( i=0; i>board_loadout[index1+12]; i--)
+                    for( i=0; i>board_loadout[index1+12]; i--){
+                        Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
                         print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
+                    }
                 }
                 location[0]+=jmp_x;
             }
