@@ -130,7 +130,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 if(board_loadout[index1]<0){
                  for( i=0; i>board_loadout[index1]; i--){
                     Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
-                    print_sprite([location[0], location[1]+(i*jmp_y)], null, Sprite_Other);
+                    print_sprite([location[0], location[1]+((-i)*jmp_y)], null, Sprite_Other);
                  }
                 }
                 location[0]+=jmp_x;
@@ -156,5 +156,3 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
 
     }
 //#endregion
-
-// TODO(ido): Run to cube-load
