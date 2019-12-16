@@ -1,4 +1,4 @@
-import { Sprite } from "pixi.js";
+//import { Sprite } from "pixi.js";
 
 
 //#region set-app
@@ -42,7 +42,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
     load_user_cubes(user, true, loc);
     loc = [(app.screen.width+board.width)/2, 0];
     load_user_cubes(other, false, loc);
-    loc = [(app.screen.width-board.width)/2, board.height/50];
+    loc = [(app.screen.width-board.width)/2+board.height/50, board.height/50];
     soldier.user.zIndex = 1;
     soldier.other.zIndex = 1;
     load_soldier(loc);
@@ -115,7 +115,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let Sprite_Soldier;
         let Sprite_Other
         let jmp_x = board.width/12;
-        let jmp_y = Sprite_Soldier.height;
+        let jmp_y = soldier.user.height;
         let y_afterline = board.height;
         let i;
         let index1;
