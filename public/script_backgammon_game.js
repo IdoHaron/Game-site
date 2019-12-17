@@ -42,7 +42,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
     load_user_cubes(user, true, loc);
     loc = [(app.screen.width+board.width)/2, 0];
     load_user_cubes(other, false, loc);
-    loc = [(app.screen.width-board.width)/2+board.height/50, board.height/50];
+    loc = [(app.screen.width-board.width)/2+board.height/40, board.height/40];
     soldier.user.zIndex = 1;
     soldier.other.zIndex = 1;
     load_soldier(loc);
@@ -115,44 +115,42 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let Sprite_Soldier;
         let Sprite_Other;
         let size_Soldier = null;
-        let jmp_x = board.width/13;
+        let jmp_x = (board.width-(2*start_place[1])-soldier.user.width)/12;
         let jmp_y = soldier.user.height;
         let y_afterline = board.height;
         let i;
         let index1;
-        for (let index = 0; index < 2; index++) {
-            for ( index1 = 0; index1 < 12; index1++) {
-                if(index1==6)
-                    location[0]+=jmp_x;
-                for( i=0; i<board_loadout[index1]; i++){
-                    Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
-                    print_sprite([location[0], location[1]+(i*jmp_y)], size_Soldier, Sprite_Soldier);
-                }
-                if(board_loadout[index1]<0){
-                 for( i=0; i>board_loadout[index1]; i--){
+        for ( index1 = 0; index1 < 12; index1++) {
+            if(index1==6)
+                location[0]+=jmp_x;
+            for( i=0; i<board_loadout[index1]; i++){
+                Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
+                print_sprite([location[0], location[1]+(i*jmp_y)], size_Soldier, Sprite_Soldier);
+            }
+            if(board_loadout[index1]<0){
+             for( i=0; i>board_loadout[index1]; i--){
+                Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
+                print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Other);
+             }
+            }
+            location[0]+=jmp_x;
+        }
+        location[1] = y_afterline-soldier.user.height-start_place[1];
+        location[0] = start_place[0];
+        for ( index1 = 0; index1 < 12; index1++) {
+            if(index1==6)
+                location[0]+=jmp_x;
+            for( i=0; i<board_loadout[index1+12]; i++){
+                Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
+                print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Soldier);
+            }
+            if(board_loadout[index1+12]<0){
+                for( i=0; i>board_loadout[index1+12]; i--){
                     Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
-                    print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Other);
-                 }
+                    print_sprite([location[0], location[1]+((i)*jmp_y)], size_Soldier, Sprite_Other);
                 }
-                location[0]+=jmp_x;
             }
-            location[1] = y_afterline-y_afterline/60;
-            location[0] = start_place[0];
-            for ( index1 = 0; index1 < 12; index1++) {
-                if(index1==6)
-                    location[0]+=jmp_x;
-                for( i=0; i<board_loadout[index1+12]; i++){
-                    Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
-                    print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Soldier);
-                }
-                if(board_loadout[index1+12]<0){
-                    for( i=0; i>board_loadout[index1+12]; i--){
-                        Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
-                        print_sprite([location[0], location[1]+((i)*jmp_y)], size_Soldier, Sprite_Other);
-                    }
-                }
-                location[0]+=jmp_x;
-            }
+            location[0]+=jmp_x;
         }
 
     }
