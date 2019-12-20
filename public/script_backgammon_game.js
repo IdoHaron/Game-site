@@ -15,6 +15,8 @@ container.height = window.innerHeight;
 container.width = window.innerWidth;
 let user_cubes = [];
 let other_cubes=[];
+let user_soldiers = []; //Two dimantional array- placement and num in placment-> points to the fitting sprites.
+let other_soldiers = []; 
 document.body.appendChild(app.view);
 app.stage.addChild(container);
 //#endregion
@@ -118,6 +120,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let jmp_x = (board.width-(2*start_place[1])-soldier.user.width)/12;
         let jmp_y = soldier.user.height;
         let y_afterline = board.height;
+        let sprite_array_saver =[];
         let i;
         let index1;
         for ( index1 = 0; index1 < 12; index1++) {
@@ -125,14 +128,28 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 location[0]+=jmp_x;
             for( i=0; i<board_loadout[index1]; i++){
                 Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
+                Sprite_Soldier.Side = "user"; //indetify Sprite side
+                Sprite_Soldier.board_place = [index1, i]; //indetify sprite place
+                Sprite_Soldier.on('pointerdown', ()=>{
+                    socket.emit("soldier-choose", index1, "user");
+                })
+                sprite_array_saver[i] = Sprite_Soldier; 
                 print_sprite([location[0], location[1]+(i*jmp_y)], size_Soldier, Sprite_Soldier);
             }
             if(board_loadout[index1]<0){
              for( i=0; i>board_loadout[index1]; i--){
                 Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
+                sprite_array_saver[(-i)] = Sprite_Soldier; 
+                Sprite_Soldier.Side = "other";
+                Sprite_Soldier.board_place = [index1, (-i)];
+                Sprite_Soldier.on('pointerdown', ()=>{
+                    socket.emit("soldier-choose", index1, "other");
+                })
                 print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Other);
              }
+             other_soldiers[index1] = sprite_array_saver;
             }
+            user_soldiers[index1] = sprite_array_saver;
             location[0]+=jmp_x;
         }
         location[1] = y_afterline-soldier.user.height-start_place[1];
@@ -142,14 +159,26 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 location[0]+=jmp_x;
             for( i=0; i<board_loadout[index1+12]; i++){
                 Sprite_Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
+                Sprite_Soldier.Side = "user"; //indetify Sprite side
+                Sprite_Soldier.board_place = [index1+12, i]; //indetify sprite place
+                Sprite_Soldier.on('pointerdown', ()=>{
+                    socket.emit("soldier-choose", index1+12, "user");
+                })
                 print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Soldier);
             }
             if(board_loadout[index1+12]<0){
                 for( i=0; i>board_loadout[index1+12]; i--){
                     Sprite_Other = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
+                    Sprite_Soldier.Side = "other";
+                    Sprite_Soldier.board_place = [index1+12, (-i)];
+                    Sprite_Soldier.on('pointerdown', ()=>{
+                        socket.emit("soldier-choose", index1+12, "other");
+                    })
                     print_sprite([location[0], location[1]+((i)*jmp_y)], size_Soldier, Sprite_Other);
                 }
+                other_soldiers[index1+12] = sprite_array_saver;
             }
+            user_soldiers[index1+12] = sprite_array_saver;
             location[0]+=jmp_x;
         }
 
