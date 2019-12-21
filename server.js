@@ -84,7 +84,7 @@ io.on('connection', (socket)=>{
             }
             else
                 socket.emit("close-page");
-            io.to(backgammon_games[game].user1.id).emit("turn");  
+            io.to(backgammon_games[game].user1.id).emit("turn");
         })
     //#endregion
 });
