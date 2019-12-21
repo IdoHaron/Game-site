@@ -118,6 +118,10 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         });
         next_sprite.on('pointerdown', (e)=>{
             // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
+            user_cubes.forEach(cubes=>{un_activate(cubes[0]); 
+                un_activate(cubes[1])});
+            user_cubes[e.target.index[0]][0].tint = 0xffff00;
+            user_cubes[e.target.index[0]][1].tint = 0xffff00;
             let j;
             for(let i =0; i<24; i++){
                 for(j=0; j<board_loadout[i]; j++)
@@ -219,18 +223,12 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 console.log(user_cubes[current.cubesIndex]);
                 possible_move(Soldier, user_cubes[current.cubesIndex]);
             }
-            if(current.soldier1 ===undefined){
-                current.soldier1 = Soldier;
-            }
-            else{
-                current.soldier2= Soldier;
-                socket.emit(`commit-turn-${user_num}`, current);
-            }
 
         }
     }
     function possible_move(Soldier, cubes){
         let demo_place  = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
+        let demo_place1  = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
         let stand;
         let num_in_stand;
         let location;
@@ -239,10 +237,14 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             console.log({stand, Soldier, cubes});
             if(board_loadout[stand]>-2){
                 num_in_stand = Math.abs(board_loadout[stand])+1;
+                console.log(`num in stand: ${num_in_stand}`);
                 location = boardPlacementToCords(stand, num_in_stand);
                 demo_place.tint = 0xffff00;
                 demo_place.original = Soldier;
-                demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand, cube));
+                demo_place.location = location;
+                console.log(move_To_construct(location, demo_place,Soldier.board_place[0] ,stand, cubes[1]));
+                console.log(`stand ${stand}`);
+                demo_place.on("pointerdown", move_To_construct(location, demo_place,Soldier.board_place[0] ,stand, cubes[0]));
                 Activate(demo_place);
                 print_sprite(location, null, demo_place);
             }
@@ -253,11 +255,13 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 return;
             num_in_stand = Math.abs(board_loadout[stand])+1;
             location = boardPlacementToCords(stand, num_in_stand);
-            demo_place.tint = 0xffff00;
-            demo_place.original = Soldier;
-            demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand, cube));
-            Activate(demo_place);
-            print_sprite(location, null, demo_place);
+            demo_place1.tint = 0xffff00;
+            demo_place1.original = Soldier;
+            demo_place1.location = location;
+            console.log(move_To_construct(location, demo_place,Soldier.board_place[0] ,stand, cubes[1]));
+            demo_place1.on("pointerdown", move_To_construct(location, demo_place1,Soldier.board_place[0] ,stand, cubes[1]));
+            Activate(demo_place1);
+            print_sprite(location, null, demo_place1);
         }
     }
     function boardPlacementToCords(stand, num_in_stand, start_place){
@@ -267,22 +271,24 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let jmp_x = (board.width-(2*location[1])-soldier.user.width)/12;
         let jmp_y = soldier.user.height;
         if(stand<=12){
-            location[0]+=jmp_x*(stand-1);
+            location[0] = (app.screen.width-board.width)/2 +board.width - soldier.user.width;
+            location[0]-=jmp_x*(stand-1);
             if(stand>=7)
-                location[0]+=jmp_x;
-            location[1]+=jmp_y*num_in_stand;
+                location[0]-=jmp_x;
+            location[1]+=jmp_y*(num_in_stand-1);
         }
         else{
             location[0]+=jmp_x*(stand%13);
             if(stand>=19)
                 location[0]+=jmp_x;
-            location[1]=board.height/40-soldier.user.height-board.height/40;
-            location[1]-=jmp_y*num_in_stand;
+            location[1]=board.height-soldier.user.height-board.height/40;
+            location[1]-=jmp_y*(num_in_stand-1);
         }
         return location;
     }
     function move_To_construct(location,demo_place, stand_org, stand_new, cube){
         return ()=>{
+            console.log("move_To_construct");
             app.stage.removeChild(demo_place);
             app.stage.removeChild(demo_place.original);
             app.stage.removeChild(cube);
@@ -295,15 +301,22 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 other_soldiers[stand_new][0] = undefined;
                 board_loadout[stand_new]++;
             }
-            board_loadout[stand_new]++;
-            user_soldiers[stand_new][user_soldiers[stand_new].length]=demo_place.original;
-            if(cube[0]===undefined&&cube[1] === undefined){
+            if(current.soldier1==undefined){
+                current.soldier1 = {org: stand_org, new: stand_new};
+            }
+            else{
+                current.soldier2 = {org: stand_org, new: stand_new};
                 current.cubesIndex = undefined;
                 for(let i =0; i<24; i++){
-                    for(j=0; j<board_loadout[i]; j++)
-                        un_activate(user_soldiers[i][j]);
+                    if(user_soldiers[i]===undefined)
+                        continue;
+                    un_activate(user_soldiers[i][user_soldiers[i].length-1]);
                 }
+                socket.emit(`turn-user-${user_num}`, current);
             }
+            board_loadout[stand_new]++;
+            user_soldiers[stand_new][user_soldiers[stand_new].length]=demo_place.original;
+            
         }
     }
     function un_activate(Sprite){
