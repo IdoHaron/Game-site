@@ -56,6 +56,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
      window.close();
  });
  socket.on("turn", (user_num1)=>{
+     console.log("turn "+user_num1);
     user_cubes.forEach(cube=>{Activate(cube[0]);
     Activate(cube[1]) });
     user_num= user_num1;
@@ -204,7 +205,8 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
 
     }
     function Activate(Sprite){
-
+        Sprite.interactive = true;
+        Sprite.buttonMode = true;
     }
     function soldier_onclick(kind, index1, Soldier){
         return ()=>{
@@ -301,6 +303,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         }
     }
     function un_activate(Sprite){
-
+        Sprite.interactive = false;
+        Sprite.buttonMode = false;
     }
 //#endregion

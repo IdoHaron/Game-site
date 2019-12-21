@@ -75,16 +75,19 @@ io.on('connection', (socket)=>{
             console.log(index);
             if(parseInt(index)=== backgammon_games[game].user1.index){
                 console.log("enters if");
+                backgammon_games[game].user1.id = socket.id;
                 socket.emit("backgammon-boardLoad", backgammon_games[game].user1, backgammon_games[game].user2);
             }
             else if(parseInt(index)=== backgammon_games[game].user2.index){
                 console.log("enters if");
                 console.log(backgammon_games[game]);
+                backgammon_games[game].user2.id = socket.id;
                 socket.emit("backgammon-boardLoad", backgammon_games[game].user2, backgammon_games[game].user1);
             }
             else
                 socket.emit("close-page");
-            io.to(backgammon_games[game].user1.id).emit("turn");
+            console.log("finish-loading "+backgammon_games[game].user1.id);
+            io.to(backgammon_games[game].user1.id).emit("turn", 1);
         })
     //#endregion
 });
