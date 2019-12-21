@@ -13,7 +13,7 @@ app.view.style.width = window.innerWidth+ 'px';
 const container = new PIXI.Container();
 container.height = window.innerHeight;
 container.width = window.innerWidth;
-let user_cubes = [];
+let user_cubes = [];/*two dimantional array [cube1, cube2] holds sprites*/
 let other_cubes=[];
 let user_soldiers = []; //Two dimantional array- placement and num in placment-> points to the fitting sprites.
 let other_soldiers = []; 
@@ -57,12 +57,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
      window.close();
  });
  socket.on("turn", ()=>{
-     for(let i =0; i<soldiers_alloct; i++){
-         if(soldiers_alloct[i].Side = "other")
-            continue;
-        Activate(soldiers_alloct[i]);
-     }
-     user_cubes.forEach(cube=>Activate(cube));
+     user_cubes.forEach(cube=>Activate(cube[0], cube[1]));
 
  })
 
@@ -84,7 +79,8 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             set_sprite_cubes(index, current_sprite, next_sprite, user);
             if(_isUser)
                 user_cubes[index]= [current_sprite, next_sprite];
-            other_cubes[index] = [current_sprite, next_sprite];
+            else
+                other_cubes[index] = [current_sprite, next_sprite];
             print_sprite(start_place, [size, size],current_sprite);
             console.log("the size "+ size);
             print_place[0]+=jmp;
@@ -108,15 +104,17 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         next_sprite.user = user;
         current_sprite.value = user.cubes[i][0];
         current_sprite.index =  [i, 0];
-        current_sprite.other_cube = next_sprite;
-        next_sprite.other_cube = current_sprite;
+        //current_sprite.other_cube = next_sprite;
+        //next_sprite.other_cube = current_sprite;
         next_sprite.index = [i,1];
         next_sprite.value = user.cubes[i][1];
         current_sprite.on('pointerdown', (e)=>{
-            socket.emit("chosen-cube", e.target.value, e.target.other_cube.value, e.target.user);
-            current.cube1= e.target.value;
-            current.cube2 = e.target.other_cube.value;
-            app.stage.removeChild(e.target);
+            for(let i =0; i<soldiers_alloct; i++){
+                if(soldiers_alloct[i].Side = "other")
+                   continue;
+               Activate(soldiers_alloct[i]);
+            }
+            current.cubesIndex = e.target.index[0];
         });
         next_sprite.on('pointerdown', (e)=>{
             // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
