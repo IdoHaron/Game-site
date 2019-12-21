@@ -18,6 +18,7 @@ let other_cubes=[];
 let user_soldiers = []; //Two dimantional array- placement and num in placment-> points to the fitting sprites.
 let other_soldiers = []; 
 let soldiers_alloct = 0;
+let user_num;
 let all_soldiers = []; // a noermal array with all the soldiers
 
 let current = {};
@@ -56,9 +57,9 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
  socket.on("close-page", ()=>{
      window.close();
  });
- socket.on("turn", ()=>{
-     user_cubes.forEach(cube=>Activate(cube[0], cube[1]));
-
+ socket.on("turn", (user_num1)=>{
+    user_cubes.forEach(cube=>Activate(cube[0], cube[1]));
+    user_num= user_num1;
  })
 
 //#endregion
@@ -118,10 +119,12 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         });
         next_sprite.on('pointerdown', (e)=>{
             // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
-            current.cube1= e.target;
-            current.cube2 = e.target.other_cube;
-            socket.emit("chosen-cube", e.target.value, e.target.other_cube.value, e.target.user);
-            app.stage.removeChild(e.target);
+            for(let i =0; i<soldiers_alloct; i++){
+                if(soldiers_alloct[i].Side = "other")
+                   continue;
+               Activate(soldiers_alloct[i]);
+            }
+            current.cubesIndex = e.target.index[0];
         });
     }
     function load_soldier(start_place){
@@ -160,7 +163,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 all_soldiers[soldiers_alloct] = Sprite_Soldier;
                 soldiers_alloct++;
 
-                Sprite_Soldier.on('pointerdown', soldier_onclick("other", index1, Sprite_Soldier))
+                //Sprite_Soldier.on('pointerdown', soldier_onclick("other", index1, Sprite_Soldier))
                 print_sprite([location[0], location[1]+((-i)*jmp_y)], size_Soldier, Sprite_Other);
              }
              other_soldiers[index1] = sprite_array_saver;
@@ -193,7 +196,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                     all_soldiers[soldiers_alloct] = Sprite_Soldier;
                     soldiers_alloct++;
                     
-                    Sprite_Soldier.on('pointerdown', soldier_onclick("other", index1+12, Sprite_Soldier))
+                    //Sprite_Soldier.on('pointerdown', soldier_onclick("other", index1+12, Sprite_Soldier))
                     print_sprite([location[0], location[1]+((i)*jmp_y)], size_Soldier, Sprite_Other);
                 }
                 other_soldiers[index1+12] = sprite_array_saver;
@@ -208,15 +211,44 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
     }
     function soldier_onclick(kind, index1, Soldier){
         return ()=>{
-            current.soldier = Soldier;
             let Sprite_move;
             if(current.cube1!==undefined){
-                Sprite_move= moveSoldier();
-                socket.emit("Commit-turn", Sprite_move);
+                Sprite_move= moveSoldier(Soldier, user_cubes[current.cubesIndex]);
             }
+            if(current.soldier1 ===undefined){
+                current.soldier1 = Soldier;
+                current.move_1 = Sprite_move;
+            }
+            else{
+                current.soldier2= Soldier;
+                current.move_2 = Sprite_move;
+                socket.emit(`commit-turn-${user_num}`, current);
+            }
+
         }
     }
     function moveSoldier(){
 
+    }
+    function boardPlacementToCords(stand, num_in_stand, start_place){
+        let location = [(app.screen.width-board.width)/2+board.height/40, board.height/40];;
+        if(start_place!==undefined)
+            location = start_place
+        let jmp_x = (board.width-(2*location[1])-soldier.user.width)/12;
+        let jmp_y = soldier.user.height;
+        if(stand<=12){
+            location[0]+=jmp_x*(stand-1);
+            if(stand>=7)
+                location[0]+=jmp_x;
+            location[1]+=jmp_y*num_in_stand;
+        }
+        else{
+            location[0]+=jmp_x*(stand%13);
+            if(stand>=19)
+                location[0]+=jmp_x;
+            location[1]=y_afterline-soldier.user.height-board.height/40;
+            location[1]-=jmp_y*num_in_stand;
+        }
+        return location;
     }
 //#endregion
