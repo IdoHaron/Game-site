@@ -56,7 +56,8 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
      window.close();
  });
  socket.on("turn", (user_num1)=>{
-    user_cubes.forEach(cube=>Activate(cube[0], cube[1]));
+    user_cubes.forEach(cube=>{Activate(cube[0]);
+    Activate(cube[1]) });
     user_num= user_num1;
  })
 
@@ -108,6 +109,8 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         next_sprite.index = [i,1];
         next_sprite.value = user.cubes[i][1];
         current_sprite.on('pointerdown', (e)=>{
+            cubes.forEach(cubes=>{un_activate(cubes[0]); 
+                un_activate(cubes[1])});
             let j;
             for(let i =0; i<24; i++){
                 for(j=0; j<board_loadout[i]; j++)
@@ -233,7 +236,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 location = boardPlacementToCords(stand, num_in_stand);
                 demo_place.tint = 0xffff00;
                 demo_place.original = Soldier;
-                demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand));
+                demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand, cube));
                 Activate(demo_place);
                 print_sprite(location, null, demo_place);
             }
@@ -246,7 +249,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             location = boardPlacementToCords(stand, num_in_stand);
             demo_place.tint = 0xffff00;
             demo_place.original = Soldier;
-            demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand));
+            demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand, cube));
             Activate(demo_place);
             print_sprite(location, null, demo_place);
         }
@@ -272,10 +275,12 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         }
         return location;
     }
-    function move_To_construct(location,demo_place, stand_org, stand_new){
+    function move_To_construct(location,demo_place, stand_org, stand_new, cube){
         return ()=>{
             app.stage.removeChild(demo_place);
             app.stage.removeChild(demo_place.original);
+            app.stage.removeChild(cube);
+            user_cubes[cube.index[0]][cube.index[1]] = undefined;
             print_sprite(location,null,demo_place.original);
             board_loadout[stand_org]--;
             user_soldiers[stand_org][user_soldiers[stand_org].length-1]=undefined;
@@ -286,6 +291,16 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             }
             board_loadout[stand_new]++;
             user_soldiers[stand_new][user_soldiers[stand_new].length]=demo_place.original;
+            if(cube[0]===undefined&&cube[1] === undefined){
+                current.cubesIndex = undefined;
+                for(let i =0; i<24; i++){
+                    for(j=0; j<board_loadout[i]; j++)
+                        un_activate(user_soldiers[i][j]);
+                }
+            }
         }
+    }
+    function un_activate(Sprite){
+
     }
 //#endregion
