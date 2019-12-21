@@ -19,8 +19,6 @@ let user_soldiers = []; //Two dimantional array- placement and num in placment->
 let other_soldiers = []; 
 let soldiers_alloct = 0;
 let user_num;
-let all_soldiers = []; // a noermal array with all the soldiers
-
 let current = {};
 document.body.appendChild(app.view);
 app.stage.addChild(container);
@@ -110,19 +108,19 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         next_sprite.index = [i,1];
         next_sprite.value = user.cubes[i][1];
         current_sprite.on('pointerdown', (e)=>{
-            for(let i =0; i<soldiers_alloct; i++){
-                if(all_soldiers[i].Side = "other")
-                   continue;
-               Activate(all_soldiers[i]);
+            let j;
+            for(let i =0; i<24; i++){
+                for(j=0; j<board_loadout[i]; j++)
+                    Activate(user_soldiers[i][j]);
             }
             current.cubesIndex = e.target.index[0];
         });
         next_sprite.on('pointerdown', (e)=>{
             // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
-            for(let i =0; i<soldiers_alloct; i++){
-                if(all_soldiers[i].Side = "other")
-                   continue;
-               Activate(all_soldiers[i]);
+            let j;
+            for(let i =0; i<24; i++){
+                for(j=0; j<board_loadout[i]; j++)
+                    Activate(user_soldiers[i][j]);
             }
             current.cubesIndex = e.target.index[0];
         });
@@ -146,7 +144,6 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 Sprite_Soldier.Side = "user"; //indetify Sprite side
                 Sprite_Soldier.board_place = [index1, i]; //indetify sprite place
                 
-                all_soldiers[soldiers_alloct] = Sprite_Soldier;
                 soldiers_alloct++;
                 
                 Sprite_Soldier.on('pointerdown', soldier_onclick("user", index1, Sprite_Soldier))
@@ -160,7 +157,6 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 Sprite_Soldier.Side = "other";
                 Sprite_Soldier.board_place = [index1, (-i)];
 
-                all_soldiers[soldiers_alloct] = Sprite_Soldier;
                 soldiers_alloct++;
 
                 //Sprite_Soldier.on('pointerdown', soldier_onclick("other", index1, Sprite_Soldier))
@@ -181,7 +177,6 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                 Sprite_Soldier.Side = "user"; //indetify Sprite side
                 Sprite_Soldier.board_place = [index1+12, i]; //indetify sprite place
                 //general soldiers array
-                all_soldiers[soldiers_alloct] = Sprite_Soldier;
                 soldiers_alloct++;
 
                 Sprite_Soldier.on('pointerdown', soldier_onclick("user", index1+12, Sprite_Soldier))
@@ -193,7 +188,6 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
                     Sprite_Soldier.Side = "other";
                     Sprite_Soldier.board_place = [index1+12, (-i)];
 
-                    all_soldiers[soldiers_alloct] = Sprite_Soldier;
                     soldiers_alloct++;
                     
                     //Sprite_Soldier.on('pointerdown', soldier_onclick("other", index1+12, Sprite_Soldier))
