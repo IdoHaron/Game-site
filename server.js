@@ -77,6 +77,7 @@ io.on('connection', (socket)=>{
                 console.log("enters if");
                 backgammon_games[game].user1.id = socket.id;
                 socket.emit("backgammon-boardLoad", backgammon_games[game].user1, backgammon_games[game].user2);
+                socket.emit("turn", 1);
             }
             else if(parseInt(index)=== backgammon_games[game].user2.index){
                 console.log("enters if");
@@ -87,7 +88,7 @@ io.on('connection', (socket)=>{
             else
                 socket.emit("close-page");
             console.log("finish-loading "+backgammon_games[game].user1.id);
-            io.to(backgammon_games[game].user1.id).emit("turn", 1);
+            io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
         })
     //#endregion
 });
