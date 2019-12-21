@@ -110,8 +110,9 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             console.log(`here is the object: \n ${e.target}`);
             let j;
             for(let i =0; i<24; i++){
+                if(user_soldiers[i]===undefined)
+                    continue;
                 Activate(user_soldiers[i][user_soldiers[i].length-1]);
-                    
             }
             current.cubesIndex = e.target.index[0];
         });
@@ -215,15 +216,14 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         return ()=>{
             Soldier.tint = 0xffff00;
             if(current.cubesIndex!==undefined){
-                possible_move(Soldier, user_cubes[current.cubesIndex][0], user_cubes[current.cubesIndex][1]);
+                console.log(user_cubes[current.cubesIndex]);
+                possible_move(Soldier, user_cubes[current.cubesIndex]);
             }
             if(current.soldier1 ===undefined){
                 current.soldier1 = Soldier;
-                current.move_1 = Sprite_move;
             }
             else{
                 current.soldier2= Soldier;
-                current.move_2 = Sprite_move;
                 socket.emit(`commit-turn-${user_num}`, current);
             }
 
@@ -236,6 +236,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let location;
         if(cubes[0]!==undefined){
             stand = Soldier.board_place[0]+cubes[0].value;
+            console.log({stand, Soldier, cubes});
             if(board_loadout[stand]>-2){
                 num_in_stand = Math.abs(board_loadout[stand])+1;
                 location = boardPlacementToCords(stand, num_in_stand);
@@ -275,7 +276,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             location[0]+=jmp_x*(stand%13);
             if(stand>=19)
                 location[0]+=jmp_x;
-            location[1]=y_afterline-soldier.user.height-board.height/40;
+            location[1]=board.height/40-soldier.user.height-board.height/40;
             location[1]-=jmp_y*num_in_stand;
         }
         return location;
