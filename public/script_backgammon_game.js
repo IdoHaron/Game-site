@@ -111,18 +111,18 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         next_sprite.value = user.cubes[i][1];
         current_sprite.on('pointerdown', (e)=>{
             for(let i =0; i<soldiers_alloct; i++){
-                if(soldiers_alloct[i].Side = "other")
+                if(all_soldiers[i].Side = "other")
                    continue;
-               Activate(soldiers_alloct[i]);
+               Activate(all_soldiers[i]);
             }
             current.cubesIndex = e.target.index[0];
         });
         next_sprite.on('pointerdown', (e)=>{
             // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
             for(let i =0; i<soldiers_alloct; i++){
-                if(soldiers_alloct[i].Side = "other")
+                if(all_soldiers[i].Side = "other")
                    continue;
-               Activate(soldiers_alloct[i]);
+               Activate(all_soldiers[i]);
             }
             current.cubesIndex = e.target.index[0];
         });
@@ -206,7 +206,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         }
 
     }
-    function Activate(){
+    function Activate(Sprite){
 
     }
     function soldier_onclick(kind, index1, Soldier){
@@ -234,21 +234,25 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         let location;
         if(cubes[0]!==undefined){
             stand = Soldier.board_place[0]+cubes[0].value;
-            num_in_stand = board_loadout[stand]+1;
-            location = boardPlacementToCords(stand, num_in_stand);
-            demo_place.tint = 0xffff00;
-            demo_place.original = Soldier;
-            demo_place.on("poinerdown", move_To_construct(demo_place));
-            Activate(demo_place);
-            print_sprite(location, null, demo_place);
+            if(board_loadout[stand]>-2){
+                num_in_stand = Math.abs(board_loadout[stand])+1;
+                location = boardPlacementToCords(stand, num_in_stand);
+                demo_place.tint = 0xffff00;
+                demo_place.original = Soldier;
+                demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand));
+                Activate(demo_place);
+                print_sprite(location, null, demo_place);
+            }
         }
         if(cubes[1]!==undefined){
             stand = Soldier.board_place[0]+cubes[1].value;
-            num_in_stand = board_loadout[stand]+1;
+            if(board_loadout[stand]<=-2)
+                return;
+            num_in_stand = Math.abs(board_loadout[stand])+1;
             location = boardPlacementToCords(stand, num_in_stand);
             demo_place.tint = 0xffff00;
             demo_place.original = Soldier;
-            demo_place.on("poinerdown", move_To_construct(demo_place));
+            demo_place.on("poinerdown", move_To_construct(demo_place, location,Soldier.board_place[0] ,stand));
             Activate(demo_place);
             print_sprite(location, null, demo_place);
         }
@@ -274,9 +278,20 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         }
         return location;
     }
-    function move_To_construct(demo_place){
+    function move_To_construct(location,demo_place, stand_org, stand_new){
         return ()=>{
-
+            app.stage.removeChild(demo_place);
+            app.stage.removeChild(demo_place.original);
+            print_sprite(location,null,demo_place.original);
+            board_loadout[stand_org]--;
+            user_soldiers[stand_org][user_soldiers[stand_org].length-1]=undefined;
+            if(board_loadout[stand_new]<0){
+                app.stage.removeChild(other_soldiers[stand_new][0]);
+                other_soldiers[stand_new][0] = undefined;
+                board_loadout[stand_new]++;
+            }
+            board_loadout[stand_new]++;
+            user_soldiers[stand_new][user_soldiers[stand_new].length]=demo_place.original;
         }
     }
 //#endregion
