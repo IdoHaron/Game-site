@@ -292,6 +292,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             app.stage.removeChild(demo_place);
             app.stage.removeChild(demo_place.original);
             app.stage.removeChild(cube);
+            Activate(user_cubes[cube.index[0]][cube.index[1]-1]);
             user_cubes[cube.index[0]][cube.index[1]] = undefined;
             print_sprite(location,null,demo_place.original);
             board_loadout[stand_org]--;
