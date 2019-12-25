@@ -89,7 +89,31 @@ io.on('connection', (socket)=>{
                 socket.emit("close-page");
             console.log("finish-loading "+backgammon_games[game].user1.id);
             io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
+        });
+        socket.on("turn-user-1", (current, game_index)=>{
+            console.log("turn-user-1");
+            backgammon_games[game_index].board[current.soldier1.org]--;
+            backgammon_games[game_index].board[current.soldier1.new]++;
+            backgammon_games[game_index].board[current.soldier2.org]--;
+            backgammon_games[game_index].board[current.soldier2.new]--;
+            backgammon_games[game_index].user_turn = 2;
+            transform_user(current);
+            io.to(backgammon_games[game_index].user2.id).emit("update-turn-user", current);
+        });
+        socket.on("load-turns", (game_index)=>{
+            io.to(backgammon_games[game_index].get_playing_id()).emit("turn",
+             backgammon_games[game_index].user_turn);
+
         })
+        socket.on("turn-user-2", (current, game_index)=>{
+            backgammon_games[game_index].board[current.soldier1.org]--;
+            backgammon_games[game_index].board[current.soldier1.new]++;
+            backgammon_games[game_index].board[current.soldier2.org]--;
+            backgammon_games[game_index].board[current.soldier2.new]--;
+            backgammon_games[game_index].user_turn = 1;
+            transform_user(current);
+            io.to(backgammon_games[game_index].user1.id).emit("update-turn-user", current);
+        });
     //#endregion
 });
 
@@ -97,10 +121,17 @@ server.listen(3000);
 //#endregion
 
 //#region object-functions
+    function transform_user(current){
+        current.soldier1.org =23-current.soldier1.org;
+        current.soldier1.new =23-current.soldier1.new;
+        current.soldier2.org =23-current.soldier2.org;
+        current.soldier2.new =23-current.soldier2.new;
+    }
     function game(user1, user2, game){
         this.user1 = user1;
         this.user2 =user2;
         this.game = game;
+        this.board = [2,0, 0,0,0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
         //setting new user propertys;
         this.user1.cubes =[]; //cube array
         this.user2.cubes =[]; 
@@ -119,7 +150,9 @@ server.listen(3000);
             this.user2.cubes[cube_set] = [num1, num2];
         }
         //
-
+        this.get_playing_id = ()=>{
+            return this[`user${this.user_turn}`].id;
+        }
         this.set_cubes = ()=>{
             let i=0;
             let num_couple=1;
