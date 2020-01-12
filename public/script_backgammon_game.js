@@ -290,16 +290,17 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         }
     }
     function boardPlacementToCords(stand/* int: start-0 */, num_in_stand/* int: start-0 */, start_place){
+        const Sizer = 50;
         if(num_in_stand===undefined)
             num_in_stand= 0;
-        let location = [(app.screen.width-board.width)/2+board.height/40, board.height/40];
+        let location = [(app.screen.width-board.width)/2+board.width/Sizer, board.height/Sizer];
         if(start_place!==undefined)
             location = start_place
-        let jmp_x = (board.width-(2*location[1])-soldier.user.width)/12;
+        let jmp_x = (board.width-(2*location[1])-soldier.user.width)/13;
         let jmp_y = soldier.user.height;
         if(stand<12){
             location[0] = (app.screen.width-board.width)/2 +board.width - soldier.user.width;
-            location[0]-=jmp_x*(stand);
+            location[0]-=jmp_x*(stand+1);
             if(stand>=7)
                 location[0]-=jmp_x;
             location[1]+=jmp_y*(num_in_stand);
@@ -308,7 +309,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             location[0]+=jmp_x*(stand%12);
             if(stand>=19)
                 location[0]+=jmp_x;
-            location[1]=board.height-soldier.user.height-board.height/40;
+            location[1]=board.height-soldier.user.height-board.height/Sizer;
             location[1]-=jmp_y*(num_in_stand);
         }
         return location;
