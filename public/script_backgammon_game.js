@@ -169,7 +169,6 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             current.cubesIndex = e.target.index[0];
         });
         next_sprite.on('pointerdown', (e)=>{
-            // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
             user_cubes.forEach(cubes=>{un_activate(cubes[0]); 
                 un_activate(cubes[1])});
             user_cubes[e.target.index[0]][0].tint = 0xffff00;
@@ -381,3 +380,7 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         return demo_place;
     }
 //#endregion
+
+            // TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
+             // TODO(Ido): organize code - seprate to files
+             //TODO(Ido): fix turn problem
