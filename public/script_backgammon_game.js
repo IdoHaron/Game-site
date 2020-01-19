@@ -15,6 +15,7 @@ const container = new PIXI.Container();
 container.height = window.innerHeight;
 container.width = window.innerWidth;
 let user_cubes = [];/*two dimantional array [cube1, cube2] holds sprites*/
+let num_double; //the number of spacificly allocated cubes.
 let other_cubes=[];
 let user_soldiers = []; //Two dimantional array- placement and num in placment-> points to the fitting sprites.
 let other_soldiers = []; 
@@ -184,11 +185,8 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
     function load_soldier(start_place){
         let location = [start_place[0], start_place[1]];
         let Sprite_Soldier;
-        let Sprite_Other;
         let size_Soldier = null;
         let jmp_x = (board.width-(2*start_place[1])-soldier.user.width)/12;
-        let jmp_y = soldier.user.height;
-        let y_afterline = board.height;
         let sprite_array_saver =[];
         let i;
         let index1;
@@ -257,57 +255,65 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         }
     }
     function possible_move(Soldier, cubes){
-        let demo_place  = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
-        let demo_place1  = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
+        let demo_place=  new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
+        let demo_place1 = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
         let stand;
         let num_in_stand;
         let location;
-        if(cubes[0]!==undefined){
-            stand = Soldier.board_place[0]+cubes[0].value;
-            if(board_loadout[stand]>-2){
-                num_in_stand = Math.abs(board_loadout[stand]);
-                location = boardPlacementToCords(stand, num_in_stand);
-                demo_place.tint = 0xffff00;
-                demo_place.original = Soldier;
-                demo_place.location = location;
-                demo_place.on("pointerdown", move_To_construct(location, demo_place,Soldier.board_place[0] ,stand, cubes[0], demo_place1));
-                Activate(demo_place);
-                print_sprite(location, null, demo_place);
+        stand = Soldier.board_place[0]+cubes[0].value;
+        if(cubes[0]===cubes[1]&& cubes[0]!=undefined){
+            if(board_loadout[stand]>-2&&stand<24){
+                num_in_stand = board_loadout[stand];
+                Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
+            }
+            Activate(Soldier);
+        }
+        else{ 
+            if(cubes[0]!==undefined){
+                if(board_loadout[stand]>-2&&stand<24){
+                    num_in_stand = board_loadout[stand];
+                    Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
+                    if(cubes[1]===undefined){
+                        un_activate(Soldier);
+                    }
+                }
+            }
+            if(cubes[1]!==undefined){
+                num_in_stand = board_loadout[stand];
+                stand = Soldier.board_place[0]+cubes[1].value;
+                if(board_loadout[stand]<=-2&&stand>=24){
+                    un_activate(Soldier);
+                    return;
+                }
+                Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[1]);
+                if(cubes[0]===undefined){
+                    un_activate(Soldier);
+                }
             }
         }
-        if(cubes[1]!==undefined){
-            stand = Soldier.board_place[0]+cubes[1].value;
-            if(board_loadout[stand]<=-2)
-                return;
-            num_in_stand = Math.abs(board_loadout[stand])+1;
-            location = boardPlacementToCords(stand, num_in_stand);
-            demo_place1.tint = 0xffff00;
-            demo_place1.original = Soldier;
-            demo_place1.location = location;
-            demo_place1.on("pointerdown", move_To_construct(location, demo_place1,Soldier.board_place[0] ,stand, cubes[1], demo_place));
-            Activate(demo_place1);
-            print_sprite(location, null, demo_place1);
-        }
+        
     }
     function boardPlacementToCords(stand/* int: start-0 */, num_in_stand/* int: start-0 */, start_place){
         const Sizer = 50;
         if(num_in_stand===undefined)
             num_in_stand= 0;
-        let location = [(app.screen.width-board.width)/2+board.width/Sizer, board.height/Sizer];
+        if(boardPlacementToCords.start_const===undefined)
+            boardPlacementToCords.start_const = [(app.screen.width-board.width)/2/*+board.width/Sizer*/, board.height/Sizer]
+        let location = [boardPlacementToCords.start_const[0], boardPlacementToCords.start_const[1]];
         if(start_place!==undefined)
-            location = start_place
+            boardPlacementToCords.start_const = start_place
         let jmp_x = (board.width-(2*location[1])-soldier.user.width)/13;
         let jmp_y = soldier.user.height;
         if(stand<12){
-            location[0] = (app.screen.width-board.width)/2 +board.width - soldier.user.width;
+            location[0] = (app.screen.width-board.width)/2 +board.width - jmp_x;
             location[0]-=jmp_x*(stand+1);
-            if(stand>=7)
+            if(stand>=6)
                 location[0]-=jmp_x;
             location[1]+=jmp_y*(num_in_stand);
         }
         else{
-            location[0]+=jmp_x*(stand%12);
-            if(stand>=19)
+            location[0]+=jmp_x*(stand%12 +0.5);
+            if(stand>=18)
                 location[0]+=jmp_x;
             location[1]=board.height-soldier.user.height-board.height/Sizer;
             location[1]-=jmp_y*(num_in_stand);
@@ -319,6 +325,8 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
             if(unselected_demo!==undefined)
                 app.stage.removeChild(unselected_demo);
             app.stage.removeChild(demo_place);
+            /*if(demo_place.num_cube==1)
+                Activate*/
             app.stage.removeChild(demo_place.original);
             app.stage.removeChild(cube);
             Activate(user_cubes[cube.index[0]][cube.index[1]-1]);
@@ -359,6 +367,17 @@ const soldier = {user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"
         if(Sprite===undefined)
             return;
         Sprite.interactive = false;
+        Sprite.tint = 0xFFFFFF;
         Sprite.buttonMode = false;
+    }
+    function Demo_Place(demo_place, Soldier, stand,num_in_stand, unselected_demo, cube){
+        let location = boardPlacementToCords(stand, num_in_stand);
+        demo_place.tint = 0xffff00;
+        demo_place.original = Soldier;
+        demo_place.location = location;
+        demo_place.on("pointerdown", move_To_construct(location, demo_place,Soldier.board_place[0] ,stand, cube, unselected_demo));
+        Activate(demo_place);
+        print_sprite(location, null, demo_place);
+        return demo_place;
     }
 //#endregion
