@@ -25,7 +25,6 @@ app.get('/backgammon_Loby', (req, res)=>{
     res.render('backgammon_Loby');
 });
 app.get("/:backgammongame",(req, res)=>{ 
-    console.log("backgammon loadout");
     res.render("backgammon-game", {game_num: req.params.backgammongame}) });
 //#endregion
 
@@ -59,7 +58,6 @@ io.on('connection', (socket)=>{
         users[convert_SocketToUser[socket.id]].index = convert_SocketToUser[socket.id];
         backgammon_games[backgammon_games_num] = new game(users[convert_SocketToUser[id]], users[convert_SocketToUser[socket.id]], backgammon_games_num) ;
         backgammon_games[backgammon_games_num].set_cubes();
-        console.log(backgammon_games[backgammon_games_num]);
         io.to(id).emit("enter-backgammon-game", backgammon_games_num);
         socket.emit("enter-backgammon-game", backgammon_games_num);
         backgammon_games_num++;
@@ -70,28 +68,20 @@ io.on('connection', (socket)=>{
 
     //#region backgammon_socket
         socket.on("Backgammon-userInfo", (index, game)=>{
-            console.log("Backgammon-userInfo");
-            console.log(backgammon_games[game].user1.index);
-            console.log(index);
             if(parseInt(index)=== backgammon_games[game].user1.index){
-                console.log("enters if");
                 backgammon_games[game].user1.id = socket.id;
                 socket.emit("backgammon-boardLoad", backgammon_games[game].user1, backgammon_games[game].user2);
                 socket.emit("turn", 1);
             }
             else if(parseInt(index)=== backgammon_games[game].user2.index){
-                console.log("enters if");
-                console.log(backgammon_games[game]);
                 backgammon_games[game].user2.id = socket.id;
                 socket.emit("backgammon-boardLoad", backgammon_games[game].user2, backgammon_games[game].user1);
             }
             else
                 socket.emit("close-page");
-            console.log("finish-loading "+backgammon_games[game].user1.id);
             io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
         });
         socket.on("turn-user-1", (current, game_index)=>{
-            console.log("turn-user-1");
             backgammon_games[game_index].board[current.soldier1.org]--;
             backgammon_games[game_index].board[current.soldier1.new]++;
             backgammon_games[game_index].board[current.soldier2.org]--;
@@ -184,7 +174,6 @@ server.listen(3000);
         }
         this.role_cubes = (user_num)=>{
             let num_cubes = 11-this[`user${user_num}`].numD;
-            console.log(this[`user${user_num}`]);
             this[`user${user_num}`];
             let num_saver1 = 0;
             let num_saver2 = 0;

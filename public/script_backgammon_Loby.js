@@ -1,24 +1,34 @@
-const socket =  io.connect("http://localhost:3000");
-socket.on("get_info", ()=>{ socket.emit("connect_loby_backgammon", parseInt( sessionStorage.getItem("index")))});
+const socket = io.connect("http://localhost:3000");
+socket.on("get_info", () => {
+    socket.emit("connect_loby_backgammon", parseInt(sessionStorage.getItem("index")))
+});
 
-socket.on("load-users", backgammon_users=>{
-    for (let index = 0; index < backgammon_users.length; index++) 
+socket.on("load-users", backgammon_users => {
+    for (let index = 0; index < backgammon_users.length; index++)
         Print_user(backgammon_users[index], backgammon_users[index].id);
 });
-socket.on("load-user", (user, id)=>{Print_user(user, id)});
-socket.on("aprove-backgammon-game", (user, id)=>{approve_game(user, id)});
-socket.on("enter-backgammon-game",game_num=>{
+socket.on("load-user", (user, id) => {
+    Print_user(user, id)
+});
+socket.on("aprove-backgammon-game", (user, id) => {
+    approve_game(user, id)
+});
+socket.on("enter-backgammon-game", game_num => {
     sessionStorage.setItem("backgammon-game", `${game_num}`);
     window.location.replace(`/:backgammongame${game_num}`);
 });
-function Print_user(Player, id/*the socket.id*/){
+
+function Print_user(Player, id /*the socket.id*/ ) {
     let btn = document.createElement("button");
-    btn.id= id;
-    btn.innerHTML= Player.name;
+    btn.id = id;
+    btn.innerHTML = Player.name;
     document.body.appendChild(btn);
-    btn.addEventListener("click", ()=> {socket.emit("backgammon-game-request", btn.id);});
+    btn.addEventListener("click", () => {
+        socket.emit("backgammon-game-request", btn.id);
+    });
 }
-function approve_game(user, id/*other players id */){
+
+function approve_game(user, id /*other players id */ ) {
     swal.fire({
         title: `Do You Want To Play?`,
         text: `The user ${user.name} has invited you to play with him!`,
