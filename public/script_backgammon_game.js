@@ -186,39 +186,28 @@ function possible_move(Soldier, cubes) {
     let demo_place1 = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
     let stand;
     let num_in_stand;
-    let location;
-    stand = Soldier.board_place[0] + cubes[0].value;
-    if (cubes[0] === cubes[1] && cubes[0] != undefined) {
-        if (board_loadout[stand] > -2 && stand < 24) {
-            num_in_stand = board_loadout[stand];
-            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
-        }
-        Activate(Soldier);
-    } else {
+    let cube1_def = false
+    let Both_defined = defined(cubes[0], cubes[1]);
+    //if (Both_defined&& cubes[0].value === cubes[1].value) { stand = Soldier.board_place[0] + cubes[0].value; if (board_loadout[stand] > -2 && stand < 24) { num_in_stand = board_loadout[stand]; Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]); } Activate(Soldier);} 
         if (cubes[0] !== undefined) {
+            cube1_def = true;
+            // stand = Soldier.board_place[0] + cubes[0].value;
             if (board_loadout[stand] > -2 && stand < 24) {
-                num_in_stand = board_loadout[stand];
-                console.log(`enters place 1, cube: ${cubes[0]} soldier in stand: ${stand}`);
+                console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
+                console.log(cubes[0]);
                 Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
-                if (cubes[1] === undefined) {
-                    un_activate(Soldier);
-                }
             }
         }
         if (cubes[1] !== undefined) {
-            num_in_stand = board_loadout[stand];
-            stand = Soldier.board_place[0] + cubes[1].value;
-            if (board_loadout[stand] <= -2 && stand >= 24) {
-                un_activate(Soldier);
-                return;
+            if(cube1_def&&cubes[1].value ===cubes[0].value){
+                let cube1 = new PIXI.Sprite(cubes[1]);
+                
             }
-            console.log(`enters place 2, cube: ${cubes[1]} soldier in stand: ${stand}`);
+            console.log(`enters place 2, soldier in stand: ${stand} cube:`);
+            console.log(cubes[1]);
             Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[1]);
-            if (cubes[0] === undefined) {
-                un_activate(Soldier);
-            }
         }
-    }
+    
 
 }
 

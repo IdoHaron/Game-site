@@ -1,3 +1,5 @@
+
+
  function boardPlacementToCords(stand /* int: start-0 */ , num_in_stand /* int: start-0 */ , start_place) {
     const Sizer = 50;
     if (num_in_stand === undefined)
@@ -26,6 +28,12 @@
 }
 
 function Demo_Place(demo_place, Soldier, stand, num_in_stand, unselected_demo, cube) {
+    num_in_stand = board_loadout[stand];
+    stand = Soldier.board_place[0] + cube.value;
+    if (board_loadout[stand] <= -2 && stand >= 24) {
+        un_activate(Soldier);
+        return;
+    }
     let location = boardPlacementToCords(stand, num_in_stand);
     demo_place.tint = 0xffff00;
     demo_place.original = Soldier;
@@ -33,9 +41,12 @@ function Demo_Place(demo_place, Soldier, stand, num_in_stand, unselected_demo, c
     demo_place.on("pointerdown", move_To_construct(location, demo_place, Soldier.board_place[0], stand, cube, unselected_demo));
     Activate(demo_place);
     print_sprite(location, null, demo_place);
+    if (cube === undefined) {
+        un_activate(Soldier);
+    }
     return demo_place;
 }
-
+//#region Activators
 function un_activate(Sprite) {
     if (Sprite === undefined)
         return;
@@ -50,7 +61,6 @@ function Activate(Sprite) {
     Sprite.interactive = true;
     Sprite.buttonMode = true;
 }
-
 
 function print_sprite(location, size, im_Sprite) {
     if(im_Sprite==undefined)
@@ -68,14 +78,23 @@ function deleteSprite() {
     for (let i = 0; i < arguments.length; i++)
         app.stage.removeChild(arguments[i]);
 }
+function remove_stage(){
+    for(let i =0; i<arguments.length; i++)
+        app.stage.removeChild(arguments[i]);
+}
+function defined(){
+    for(let i =0; i<arguments.length; i++)
+        if(arguments[i]===undefined)
+            return false;
+    return true;
+}
+//#endregion
 
 function set_sprite_cubes(i, current_sprite, next_sprite, user) {
     current_sprite.user = user;
     next_sprite.user = user;
     current_sprite.value = user.cubes[i][0];
     current_sprite.index = [i, 0];
-    //current_sprite.other_cube = next_sprite;
-    //next_sprite.other_cube = current_sprite;
     next_sprite.index = [i, 1];
     next_sprite.value = user.cubes[i][1];
     current_sprite.on('pointerdown', (e) => {
@@ -115,7 +134,7 @@ function move_To_construct(location, demo_place, stand_org, stand_new, cube, uns
         if (unselected_demo !== undefined)
             remove_stage(unselected_demo);
         remove_stage(demo_place, demo_place.original, cube);
-        Activate(user_cubes[cube.index[0]][cube.index[1] - 1]);
+        //Activate(user_cubes[cube.index[0]][cube.index[1] - 1]);
         demo_place.original.tint = 0xFFFFFF;
         user_cubes[cube.index[0]][cube.index[1]] = undefined;
         print_sprite(location, null, demo_place.original);
@@ -151,8 +170,4 @@ function move_To_construct(location, demo_place, stand_org, stand_new, cube, uns
             user_soldiers[stand_new][user_soldiers[stand_new].length] = demo_place.original;
 
     }
-}
-function remove_stage(){
-    for(let i =0; i<arguments.length; i++)
-        app.stage.removeChild(arguments[i]);
 }
