@@ -29,6 +29,7 @@
 
 function Demo_Place(demo_place, Soldier, stand, num_in_stand, unselected_demo, cube) {
     if (board_loadout[stand] <= -2 && stand >= 24) {
+        Activate_soldiers();
          return;
     }
     let location = boardPlacementToCords(stand, num_in_stand);
@@ -41,9 +42,10 @@ function Demo_Place(demo_place, Soldier, stand, num_in_stand, unselected_demo, c
     return demo_place;
 }
 function Move_Soldier_controler(location, demo_place, board_place, stand, cube, unselected_demo){
-    if(double === undefined)
+    console.log(user_cubes[cube.index[0]]);
+    if(user_cubes[cube.index[0]].double === undefined)
         return move_To_construct(location, demo_place, board_place, stand, cube, unselected_demo);
-    if(user_cubes[cube.index[0]].double===undefined)
+    if(cube===undefined)
         return double_constractur(location, demo_place, board_place, stand, cube.other, unselected_demo);
     return double_constractur(location, demo_place, board_place, stand, cube, unselected_demo);
 }
@@ -119,13 +121,17 @@ function set_sprite_cubes(i, current_sprite, next_sprite, user) {
 }
 function double_constractur(location, demo_place, stand_org, stand_new, cube, unselected_demo){
     return ()=>{
+        console.log("gets here- double");
         let double = user_cubes[cube.index[0]].double;
         remove_stage(unselected_demo, demo_place, demo_place.original);
+        Deactivate_selection(location, demo_place.original);
         if(double===1 || double === 3){
             remove_stage(cube);
             user_cubes[cube.index[0]][cube.index[1]] = undefined;
         }
+        console.log(`double: ${double}  ${user_cubes[cube.index[0]].double}`);
         user_cubes[cube.index[0]].double--;
+        console.log(`double: ${double}  ${user_cubes[cube.index[0]].double}`);
         board_loadout[stand_org]--;
         user_soldiers[stand_org][user_soldiers[stand_org].length - 1] = undefined;
         if (board_loadout[stand_new] < 0) {
@@ -146,12 +152,14 @@ function update_current(original_place, new_place, number_of_cells){
     let i= 1;
     for(i=1; i<=number_of_cells; i++)
         if(current[`soldier${i}`]=== undefined){
+            console.log(i);
             current[`soldier${i}`] = {
                 org: original_place,
                 new: new_place
             };
             if(i!==number_of_cells)
                 Activate_soldiers();
+            break;
         }
     if(i=== number_of_cells){
         current.Inex_ToCube2 = current.cubesIndex;

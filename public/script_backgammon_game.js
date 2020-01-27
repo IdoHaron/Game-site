@@ -188,7 +188,7 @@ function cube_func_constractor(cube){
             un_activate(cubes[1]);
         });
         if(user_cubes[cube.index[0]][0]===user_cubes[cube.index[0]][1])
-            user_cubes[index].counter = 4;
+            user_cubes[cube.index[0]].double = 4;
         if(user_cubes[cube.index[0]][0]!==undefined)
             user_cubes[cube.index[0]][0].tint = 0xffff00;
         if(user_cubes[cube.index[0]][1]!==undefined)
