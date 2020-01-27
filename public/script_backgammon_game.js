@@ -60,7 +60,7 @@ socket.on("turn", (user_num1) => {
     user_cubes.forEach(cube => {
         if (cube !== undefined) {
             Activate(cube[0]);
-            Activate(cube[1])
+            Activate(cube[1]);
         }
     });
     user_num = user_num1;
@@ -71,7 +71,7 @@ socket.on("update-turn-user", current => {
     console.log("update-turn");
     console.log(current);
     move_soldiers(other_soldiers, current.soldier1, current.soldier2);
-    deleteSprite(other_cubes[current.Inex_ToCube2][0], other_cubes[current.Inex_ToCube2][1]);
+    remove_stage(other_cubes[current.Inex_ToCube2][0], other_cubes[current.Inex_ToCube2][1]);
     socket.emit("load-turns", game_index);
 })
 
@@ -174,10 +174,28 @@ function load_soldier(start_place) {
 function soldier_onclick(kind, index1, Soldier) {
     return () => {
         Soldier.tint = 0xffff00;
+        un_activate_soldiers();
         if (current.cubesIndex !== undefined) {
             possible_move(Soldier, user_cubes[current.cubesIndex]);
         }
 
+    }
+}
+function cube_func_constractor(cube){
+    return ()=>{
+        user_cubes.forEach(cubes => {
+            un_activate(cubes[0]);
+            un_activate(cubes[1]);
+        });
+        if(user_cubes[cube.index[0]][0]===user_cubes[cube.index[0]][1])
+            user_cubes[index].counter = 4;
+        if(user_cubes[cube.index[0]][0]!==undefined)
+            user_cubes[cube.index[0]][0].tint = 0xffff00;
+        if(user_cubes[cube.index[0]][1]!==undefined)
+            user_cubes[cube.index[0]][1].tint = 0xffff00;
+        let j;
+        Activate_soldiers();
+        current.cubesIndex = cube.index[0];
     }
 }
 
@@ -189,23 +207,26 @@ function possible_move(Soldier, cubes) {
     let cube1_def = false
     let Both_defined = defined(cubes[0], cubes[1]);
     //if (Both_defined&& cubes[0].value === cubes[1].value) { stand = Soldier.board_place[0] + cubes[0].value; if (board_loadout[stand] > -2 && stand < 24) { num_in_stand = board_loadout[stand]; Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]); } Activate(Soldier);} 
+        if(cubes.counter!==undefined){
+            stand = Soldier.board_place[0] + cubes[0].value;
+            num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;
+            console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
+            console.log(cubes[0]);
+            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0], cubes.counter);
+        }
         if (cubes[0] !== undefined) {
-            cube1_def = true;
-            // stand = Soldier.board_place[0] + cubes[0].value;
-            if (board_loadout[stand] > -2 && stand < 24) {
-                console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
-                console.log(cubes[0]);
-                Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
-            }
+            stand = Soldier.board_place[0] + cubes[0].value;
+            num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;
+            console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
+            console.log(cubes[0]);
+            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
         }
         if (cubes[1] !== undefined) {
-            if(cube1_def&&cubes[1].value ===cubes[0].value){
-                let cube1 = new PIXI.Sprite(cubes[1]);
-                
-            }
+            stand = Soldier.board_place[0] + cubes[1].value;
+            num_in_stand = board_loadout[stand];
             console.log(`enters place 2, soldier in stand: ${stand} cube:`);
             console.log(cubes[1]);
-            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[1]);
+            Demo_Place(demo_place1, Soldier, stand, num_in_stand, demo_place, cubes[1]);
         }
     
 
