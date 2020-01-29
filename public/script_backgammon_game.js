@@ -70,11 +70,15 @@ socket.on("update-turn-user", current => {
     current.soldier2.Side = -1;
     console.log("update-turn");
     console.log(current);
-    move_soldiers(other_soldiers, current.soldier1, current.soldier2);
+    if(current[`soldier4`]!==undefined)
+        move_soldiers(other_soldiers, current.soldier1, current.soldier2, current.soldier3, current.soldier4);
+    else 
+        move_soldiers(other_soldiers, current.soldier1, current.soldier2);
+    if(current.eat !==[])
+        eating(current.eat);
     remove_stage(other_cubes[current.Inex_ToCube2][0], other_cubes[current.Inex_ToCube2][1]);
     socket.emit("load-turns", game_index);
-})
-
+});
 //#endregion
 
 //#region functions
@@ -96,7 +100,7 @@ function move_soldiers() {
             board_loadout[new_s] = 0;
             array[new_s][0] = current_sprite;
         } else
-            loc = boardPlacementToCords(new_s, board_loadout[new_s].length);
+            loc = boardPlacementToCords(new_s, array[new_s].length);
         board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
         print_sprite(loc, null, current_sprite);
@@ -187,7 +191,13 @@ function cube_func_constractor(cube){
             un_activate(cubes[0]);
             un_activate(cubes[1]);
         });
-        if(user_cubes[cube.index[0]][0]===user_cubes[cube.index[0]][1])
+        console.log(cube);
+        if(user_soldiers[-1]!==undefined){
+            Activate_eatned_soldiers();
+            current.cubesIndex = cube.index[0];
+            return;
+        }
+        if(user_cubes[cube.index[0]][0].value===user_cubes[cube.index[0]][1].value)
             user_cubes[cube.index[0]].double = 4;
         if(user_cubes[cube.index[0]][0]!==undefined)
             user_cubes[cube.index[0]][0].tint = 0xffff00;
@@ -212,7 +222,7 @@ function possible_move(Soldier, cubes) {
             num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;
             console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
             console.log(cubes[0]);
-            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0], cubes.counter);
+            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
         }
         if (cubes[0] !== undefined) {
             stand = Soldier.board_place[0] + cubes[0].value;

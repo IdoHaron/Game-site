@@ -11,6 +11,17 @@
         boardPlacementToCords.start_const = start_place
     let jmp_x = (board.width - (2 * location[1]) - soldier.user.width) / 13;
     let jmp_y = soldier.user.height;
+    if(stand===-1){
+        location[0] -= jmp_x * 6;
+        location[1] += jmp_y * (num_in_stand);
+        return location;
+    }
+    if(stand===24){
+        location[0] -= jmp_x * 6;
+        location[1] = board.height - soldier.user.height - board.height / Sizer;
+        location[1] -= jmp_y * (num_in_stand);
+        return location;
+    }
     if (stand < 12) {
         location[0] = (app.screen.width - board.width) / 2 + board.width - jmp_x;
         location[0] -= jmp_x * (stand + 1);
@@ -48,6 +59,11 @@ function Move_Soldier_controler(location, demo_place, board_place, stand, cube, 
     if(cube===undefined)
         return double_constractur(location, demo_place, board_place, stand, cube.other, unselected_demo);
     return double_constractur(location, demo_place, board_place, stand, cube, unselected_demo);
+}
+function Activate_eatned_soldiers(){
+    for(let i=0; i<user_soldiers[-1].length;i++){
+        Activate(user_soldiers[-1][i]);
+    }
 }
 //#region Activators
 function un_activate(Sprite) {
@@ -119,6 +135,53 @@ function set_sprite_cubes(i, current_sprite, next_sprite, user) {
     current_sprite.on('pointerdown', cube_func_constractor(current_sprite));
     next_sprite.on('pointerdown', cube_func_constractor(next_sprite));
 }
+function eating(eatened){
+    for(let i=0; i<current.eat.length; i++){
+        move_eatened(eatened[i].new);
+    }
+    let soldier = user_soldiers[-1].pop();
+    board_loadout[-1]++;
+    if(check_double(soldier)==false){
+        user_soldiers[-1].push(soldier);
+        board_loadout[-1]++;
+        socket.emit("load-new-cubes-eating", game_index);
+    }
+    socket.emit("load-turns", game_index);
+}
+function move_eatened(place){
+    if(user_soldiers[-1]===undefined)
+        user_soldiers[-1] = [];
+    if(board_loadout[-1]===undefined)
+        board_loadout[-1]=0;
+    let soldier = user_soldiers[place].pop();
+    board_loadout[place]--;
+    remove_stage(soldier);
+    print_sprite(boardPlacementToCords(-1, 0), null, soldier);
+    user_soldiers[-1].push(soldier);
+    board_loadout[-1]++;
+}
+function check_double(soldier){
+    let double_bool= false;
+    for(let i=0; i<user_cubes.length; i++){
+        if(user_cubes[i][0].value === user_cubes[i][1].value){
+            double_bool = true;
+            Activate(user_cubes[i][0]);
+            Activate(user_cubes[i][1]);
+
+        }
+    }
+}
+function Correct_board_loadout(){
+    if(user_soldiers[-1]!==undefined){
+        board_loadout[-1] = user_soldiers[-1].length;
+    }
+    for(let i=0; i<24; i++){
+        board_loadout[i] = user_soldiers[i].length;
+    }
+    for(let i=0; i<24; i++){
+        board_loadout[i] -= other_soldiers[i].length;
+    }
+}
 function double_constractur(location, demo_place, stand_org, stand_new, cube, unselected_demo){
     return ()=>{
         console.log("gets here- double");
@@ -133,10 +196,10 @@ function double_constractur(location, demo_place, stand_org, stand_new, cube, un
         user_cubes[cube.index[0]].double--;
         console.log(`double: ${double}  ${user_cubes[cube.index[0]].double}`);
         board_loadout[stand_org]--;
-        user_soldiers[stand_org][user_soldiers[stand_org].length - 1] = undefined;
+        user_soldiers[stand_org].pop();
         if (board_loadout[stand_new] < 0) {
             remove_stage(other_soldiers[stand_new][0]);
-            other_soldiers[stand_new][0] = undefined;
+            other_soldiers[stand_new].shift();
             board_loadout[stand_new]++;
         }
         board_loadout[stand_new]++;
@@ -157,8 +220,6 @@ function update_current(original_place, new_place, number_of_cells){
                 org: original_place,
                 new: new_place
             };
-            if(i!==number_of_cells)
-                Activate_soldiers();
             break;
         }
     if(i=== number_of_cells){
@@ -166,7 +227,14 @@ function update_current(original_place, new_place, number_of_cells){
         current.cubesIndex = undefined;
         un_activate_soldiers();
         socket.emit(`turn-user-${user_num}`, current, parseInt(game_index));
+        return ;
     }
+    Activate_soldiers();
+}
+function eat_enemy(place){
+    let soldier = other_soldiers[place].pop();
+    remove_stage(soldier);
+    print_sprite(boardPlacementToCords(24, other_soldiers[place].length), null, soldier);
 }
 function move_To_construct(location, demo_place, stand_org, stand_new, cube, unselected_demo) {
     return () => {
@@ -174,10 +242,11 @@ function move_To_construct(location, demo_place, stand_org, stand_new, cube, uns
         Deactivate_selection(location, demo_place.original);
         user_cubes[cube.index[0]][cube.index[1]] = undefined;
         board_loadout[stand_org]--;
-        user_soldiers[stand_org][user_soldiers[stand_org].length - 1] = undefined;
+        console.log(user_soldiers[stand_org].length - 1);
+        user_soldiers[stand_org].pop();
+        console.log(user_soldiers[stand_org] );
+        console.log(user_soldiers[stand_org].length - 1);
         if (board_loadout[stand_new] < 0) {
-            remove_stage(other_soldiers[stand_new][0]);
-            other_soldiers[stand_new][0] = undefined;
             board_loadout[stand_new]++;
         }
         board_loadout[stand_new]++;
