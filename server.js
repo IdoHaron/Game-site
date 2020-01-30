@@ -82,26 +82,27 @@ io.on('connection', (socket)=>{
             io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
         });
         socket.on("turn-user-1", (current, game_index)=>{
-            backgammon_games[game_index].board[current.soldier1.org]--;
-            backgammon_games[game_index].board[current.soldier1.new]++;
-            backgammon_games[game_index].board[current.soldier2.org]--;
-            backgammon_games[game_index].board[current.soldier2.new]--;
-            backgammon_games[game_index].user_turn = 2;
+            updtae_server_board(current, game_index);
             transform_user(current);
+            backgammon_games[game_index].user_turn = 2;
             io.to(backgammon_games[game_index].user2.id).emit("update-turn-user", current);
         });
         socket.on("load-turns", (game_index)=>{
             io.to(backgammon_games[game_index].get_playing_id()).emit("turn",
              backgammon_games[game_index].user_turn);
-
+        });
+        socket.on("Re-role-cubes", (users_num, game_index)=>{
+            backgammon_games[game_index].New_Cubes(users_num);
+            let user = backgammon_games[game_index][`user${users_num}`];
+            io.to(user.id).emit("load-new-cubes",user);
+            io.to(user.get_other().id).emit("load-new-cubes-other", user);
+            backgammon_games[game_index].user_turn.user_turn = user.get_other().Player;
+            io.to(user.get_other().id).emit("turn", user.get_other().Player);
         })
         socket.on("turn-user-2", (current, game_index)=>{
-            backgammon_games[game_index].board[current.soldier1.org]--;
-            backgammon_games[game_index].board[current.soldier1.new]++;
-            backgammon_games[game_index].board[current.soldier2.org]--;
-            backgammon_games[game_index].board[current.soldier2.new]--;
+            transform_user(current); //the board is on the coordinent system of user1;
+            updtae_server_board(current, game_index);
             backgammon_games[game_index].user_turn = 1;
-            transform_user(current);
             io.to(backgammon_games[game_index].user1.id).emit("update-turn-user", current);
         });
     //#endregion
@@ -112,10 +113,32 @@ server.listen(3000);
 
 //#region object-functions
     function transform_user(current){
-        current.soldier1.org =23-current.soldier1.org;
-        current.soldier1.new =23-current.soldier1.new;
-        current.soldier2.org =23-current.soldier2.org;
-        current.soldier2.new =23-current.soldier2.new;
+        for(let i=1; current[`soldier${i}`]!==undefined; i++){
+            current[`soldier${i}`].org = 23-current[`soldier${i}`].org;
+            current[`soldier${i}`].new=23-current[`soldier${i}`].new;
+        }
+        for(let i= 0; current.eat.length; i++){
+            current.eat[i].org = 23-current.eat[i].org;
+            current.eat[i].new = 23-current.eat[i].new;
+        }
+    }
+    function updtae_server_board(current, game_index){
+        current.eat = [];
+        for(let i=1; current[`soldier${i}`]!==undefined; i++){
+            backgammon_games[game_index].board[current[`soldier${i}`].org]--;
+            backgammon_games[game_index].board[current[`soldier${i}`].new]++;
+            if(backgammon_games[game_index].board[current[`soldier${i}`].new]===0){
+                current.eat.push({org: current[`soldier${i}`].org, new: current[`soldier${i}`].new});
+                if(backgammon_games[game_index].board[-1]===undefined)
+                    backgammon_games[game_index].board[-1] =0
+                backgammon_games[game_index].board[-1]++;
+            }
+        }
+        let win = backgammon_games[game_index].Check_Win();
+        if(win!==false){
+            io.to(win.id).emit("win");
+            io.to(win.get_other().id).emit("lose");
+        }
     }
     function game(user1, user2, game){
         this.user1 = user1;
@@ -138,6 +161,12 @@ server.listen(3000);
         }
         this.user2.set_cubes=(num1, num2)=>{
             this.user2.cubes[cube_set] = [num1, num2];
+        }
+        this.user1.get_other = ()=>{
+            return this.user2;
+        }
+        this.user2.get_other = ()=>{
+            return this.user1;
         }
         //
         this.get_playing_id = ()=>{
@@ -189,6 +218,23 @@ server.listen(3000);
                 this[`user${user_num}`].set_cubes(num_saver1, num_saver2);
                 cube_set++;
             }
+        }
+        this.Check_Win = ()=>{
+            let soldier_counter = 0;
+            let side = 1;
+            for(let i= 17; i<24; i++){
+                if(this.board[i]<0)
+                    side=-1;
+                soldier_counter+=(side*this.board[i]);
+            }
+            if(soldier_counter===15){
+                return ((side===1) ? ( this.user1 ): ( this.user2));
+            }
+            return false;
+        };
+        this.New_Cubes = (user_num)=>{
+            this[`user${user_num}`].numD = 0;
+            this.role_cubes(user_num);
         }
     }
 //#endregion

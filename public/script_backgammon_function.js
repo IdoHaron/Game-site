@@ -136,17 +136,21 @@ function set_sprite_cubes(i, current_sprite, next_sprite, user) {
     next_sprite.on('pointerdown', cube_func_constractor(next_sprite));
 }
 function eating(eatened){
+    console.log(current);
     for(let i=0; i<current.eat.length; i++){
         move_eatened(eatened[i].new);
     }
+    turn_eatened();
+}
+function turn_eatened(){
     let soldier = user_soldiers[-1].pop();
     board_loadout[-1]++;
     if(check_double(soldier)==false){
         user_soldiers[-1].push(soldier);
         board_loadout[-1]++;
-        socket.emit("load-new-cubes-eating", game_index);
+        socket.emit("Re-role-cubes", user_num, game_index);
     }
-    socket.emit("load-turns", game_index);
+    socket.emit(`turn-user-${user_num}`, game_index);
 }
 function move_eatened(place){
     if(user_soldiers[-1]===undefined)
@@ -161,13 +165,10 @@ function move_eatened(place){
     board_loadout[-1]++;
 }
 function check_double(soldier){
-    let double_bool= false;
     for(let i=0; i<user_cubes.length; i++){
         if(user_cubes[i][0].value === user_cubes[i][1].value){
-            double_bool = true;
             Activate(user_cubes[i][0]);
             Activate(user_cubes[i][1]);
-
         }
     }
 }
@@ -210,6 +211,20 @@ function double_constractur(location, demo_place, stand_org, stand_new, cube, un
         let i;
         update_current(stand_org, stand_new, 4);
     }
+}
+function remove_cubes(remove_user, remove_other){
+    if(remove_user===true)
+        for(let i=0; i<user_cubes.length; i++){
+            remove_stage(user_cubes[i][1], user_cubes[i][0]);
+            user_cubes[i].pop();
+            user_cubes[i].pop();
+        }
+    if(remove_other===true)
+        for(let i=0; i<other_cubes.length; i++){
+            remove_stage(other_cubes[i][1], other_cubes[i][0]);
+            other_cubes[i].pop();
+            other_cubes[i].pop();
+        }
 }
 function update_current(original_place, new_place, number_of_cells){
     let i= 1;

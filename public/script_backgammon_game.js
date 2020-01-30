@@ -57,6 +57,10 @@ socket.on("close-page", () => {
     window.close();
 });
 socket.on("turn", (user_num1) => {
+    if(user_soldiers[-1]!==undefined){
+        turn_eatened();
+        return;
+    }
     user_cubes.forEach(cube => {
         if (cube !== undefined) {
             Activate(cube[0]);
@@ -65,18 +69,40 @@ socket.on("turn", (user_num1) => {
     });
     user_num = user_num1;
 });
-socket.on("update-turn-user", current => {
-    current.soldier1.Side = -1;
-    current.soldier2.Side = -1;
+socket.on("win", ()=>{
+
+});
+socket.on("lose", ()=>{
+
+});
+socket.on("load-new-cubes", user=>{
+    if(user_cubes !== undefined)
+        remove_cubes(true, false);
+    let loc = [0, 0];
+    load_user_cubes(user,true, loc);
+    return ;
+});
+
+socket.on("load-new-cubes-other", other=>{
+    if(other_cubes !== undefined)
+        remove_cubes(false, true);
+    let loc = [(app.screen.width - board.width) / 2 + board.height / 40, board.height / 40];
+    load_user_cubes(other,false, loc);
+    return ;
+});
+socket.on("update-turn-user", current1 => {
+    current = current1;
+    current1.soldier1.Side = -1;
+    current1.soldier2.Side = -1;
     console.log("update-turn");
-    console.log(current);
-    if(current[`soldier4`]!==undefined)
-        move_soldiers(other_soldiers, current.soldier1, current.soldier2, current.soldier3, current.soldier4);
+    console.log(current1);
+    if(current1[`soldier4`]!==undefined)
+        move_soldiers(other_soldiers, current1.soldier1, current1.soldier2, current1.soldier3, current1.soldier4);
     else 
-        move_soldiers(other_soldiers, current.soldier1, current.soldier2);
-    if(current.eat !==[])
-        eating(current.eat);
-    remove_stage(other_cubes[current.Inex_ToCube2][0], other_cubes[current.Inex_ToCube2][1]);
+        move_soldiers(other_soldiers, current1.soldier1, current1.soldier2);
+    if(current1.eat !==[]&&current1.eat!==undefined&&current.eat.length!==0)
+        eating(current1.eat);
+    remove_stage(other_cubes[current1.Inex_ToCube2][0], other_cubes[current1.Inex_ToCube2][1]);
     socket.emit("load-turns", game_index);
 });
 //#endregion
@@ -100,7 +126,7 @@ function move_soldiers() {
             board_loadout[new_s] = 0;
             array[new_s][0] = current_sprite;
         } else
-            loc = boardPlacementToCords(new_s, array[new_s].length);
+            loc = boardPlacementToCords(new_s, board_loadout[new_s]);
         board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
         print_sprite(loc, null, current_sprite);
