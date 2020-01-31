@@ -5,7 +5,7 @@ const app = new PIXI.Application({
     resizeTo: window
 });
 let width = window.innerWidth;
-let board_loadout = [2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
+let board_loadout = [2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2];
 //let board_loadout= [5,0, 0,0,-3, 0, -5, 0, 0, 0, 0, 2, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
 app.view.style.height = window.innerHeight + 'px';
 app.view.style.width = window.innerWidth + 'px';
@@ -61,6 +61,7 @@ socket.on("turn", (user_num1) => {
         turn_eatened();
         return;
     }
+    current = {};
     user_cubes.forEach(cube => {
         if (cube !== undefined) {
             Activate(cube[0]);
@@ -92,14 +93,9 @@ socket.on("load-new-cubes-other", other=>{
 });
 socket.on("update-turn-user", current1 => {
     current = current1;
-    current1.soldier1.Side = -1;
-    current1.soldier2.Side = -1;
-    console.log("update-turn");
-    console.log(current1);
-    if(current1[`soldier4`]!==undefined)
-        move_soldiers(other_soldiers, current1.soldier1, current1.soldier2, current1.soldier3, current1.soldier4);
-    else 
-        move_soldiers(other_soldiers, current1.soldier1, current1.soldier2);
+    Change_Side_users(current1);
+    move_relevant_soldiers(current1);
+    console.log(board_loadout);
     if(current1.eat !==[]&&current1.eat!==undefined&&current.eat.length!==0)
         eating(current1.eat);
     remove_stage(other_cubes[current1.Inex_ToCube2][0], other_cubes[current1.Inex_ToCube2][1]);
@@ -108,7 +104,16 @@ socket.on("update-turn-user", current1 => {
 //#endregion
 
 //#region functions
-
+function Change_Side_users(current){
+     for(let i=1; current[`soldier${i}`]!==undefined; i++){
+        current[`soldier${i}`].Side = -1;
+     }
+}
+function move_relevant_soldiers(current){
+    for(let i=1; current[`soldier${i}`]!==undefined; i++){
+        move_soldiers(other_soldiers, current[`soldier${i}`]);
+     }
+}
 function move_soldiers() {
     /* input: array, {org: , new: , side:}, {org, new}... */
     console.log(arguments);
@@ -127,6 +132,7 @@ function move_soldiers() {
             array[new_s][0] = current_sprite;
         } else
             loc = boardPlacementToCords(new_s, board_loadout[new_s]);
+        console.log(`board pos new: ${board_loadout[new_s]}`);
         board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
         print_sprite(loc, null, current_sprite);
@@ -240,32 +246,19 @@ function possible_move(Soldier, cubes) {
     let demo_place1 = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
     let stand;
     let num_in_stand;
-    let cube1_def = false
-    let Both_defined = defined(cubes[0], cubes[1]);
+    //let cube1_def = false let Both_defined = defined(cubes[0], cubes[1]);
     //if (Both_defined&& cubes[0].value === cubes[1].value) { stand = Soldier.board_place[0] + cubes[0].value; if (board_loadout[stand] > -2 && stand < 24) { num_in_stand = board_loadout[stand]; Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]); } Activate(Soldier);} 
-        if(cubes.counter!==undefined){
-            stand = Soldier.board_place[0] + cubes[0].value;
-            num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;
-            console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
-            console.log(cubes[0]);
-            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
-        }
+        //if(cubes.counter!==undefined){ stand = Soldier.board_place[0] + cubes[0].value; num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;    Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);}
         if (cubes[0] !== undefined) {
             stand = Soldier.board_place[0] + cubes[0].value;
             num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;
-            console.log(`enters place 1,  soldier in stand: ${stand} cube:`);
-            console.log(cubes[0]);
             Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
         }
         if (cubes[1] !== undefined) {
             stand = Soldier.board_place[0] + cubes[1].value;
             num_in_stand = board_loadout[stand];
-            console.log(`enters place 2, soldier in stand: ${stand} cube:`);
-            console.log(cubes[1]);
             Demo_Place(demo_place1, Soldier, stand, num_in_stand, demo_place, cubes[1]);
         }
-    
-
 }
 
 

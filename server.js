@@ -103,6 +103,7 @@ io.on('connection', (socket)=>{
             transform_user(current); //the board is on the coordinent system of user1;
             updtae_server_board(current, game_index);
             backgammon_games[game_index].user_turn = 1;
+            console.log("turen user 2 ends");
             io.to(backgammon_games[game_index].user1.id).emit("update-turn-user", current);
         });
     //#endregion
@@ -117,7 +118,9 @@ server.listen(3000);
             current[`soldier${i}`].org = 23-current[`soldier${i}`].org;
             current[`soldier${i}`].new=23-current[`soldier${i}`].new;
         }
-        for(let i= 0; current.eat.length; i++){
+        if(current.eat === undefined)
+            current.eat = [];
+        else for(let i= 0; current.eat.length; i++){
             current.eat[i].org = 23-current.eat[i].org;
             current.eat[i].new = 23-current.eat[i].new;
         }
@@ -130,10 +133,11 @@ server.listen(3000);
             if(backgammon_games[game_index].board[current[`soldier${i}`].new]===0){
                 current.eat.push({org: current[`soldier${i}`].org, new: current[`soldier${i}`].new});
                 if(backgammon_games[game_index].board[-1]===undefined)
-                    backgammon_games[game_index].board[-1] =0
+                    backgammon_games[game_index].board[-1] =0;
                 backgammon_games[game_index].board[-1]++;
             }
         }
+        console.log(backgammon_games[game_index].board);
         let win = backgammon_games[game_index].Check_Win();
         if(win!==false){
             io.to(win.id).emit("win");
@@ -219,7 +223,7 @@ server.listen(3000);
                 cube_set++;
             }
         }
-        this.Check_Win = ()=>{
+        this.Check_Win = ()=>{ //needs fixing to other user, on the first square and no the last
             let soldier_counter = 0;
             let side = 1;
             for(let i= 17; i<24; i++){
