@@ -82,7 +82,8 @@ io.on('connection', (socket)=>{
             io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
         });
         socket.on("turn-user-1", (current, game_index)=>{
-            updtae_server_board(current, game_index);
+            current.side = 1;
+            updtae_server_board(current, game_index, backgammon_games[game_index].user2);
             transform_user(current);
             backgammon_games[game_index].user_turn = 2;
             io.to(backgammon_games[game_index].user2.id).emit("update-turn-user", current);
@@ -100,8 +101,10 @@ io.on('connection', (socket)=>{
             io.to(user.get_other().id).emit("turn", user.get_other().Player);
         })
         socket.on("turn-user-2", (current, game_index)=>{
+            game_index = parseInt(game_index);
             transform_user(current); //the board is on the coordinent system of user1;
-            updtae_server_board(current, game_index);
+            current.side = -1; 
+            updtae_server_board(current, game_index, backgammon_games[game_index].user1);
             backgammon_games[game_index].user_turn = 1;
             console.log("turen user 2 ends");
             io.to(backgammon_games[game_index].user1.id).emit("update-turn-user", current);
@@ -120,24 +123,27 @@ server.listen(3000);
         }
         if(current.eat === undefined)
             current.eat = [];
-        else for(let i= 0; current.eat.length; i++){
-            current.eat[i].org = 23-current.eat[i].org;
-            current.eat[i].new = 23-current.eat[i].new;
+        else for(let i= 0; i<current.eat.length; i++){
+            if(current.eat[i]!== undefined)
+                current.eat[i].new = 23-current.eat[i].new;
         }
     }
-    function updtae_server_board(current, game_index){
+    function updtae_server_board(current, game_index, user){
         current.eat = [];
+        console.log("game-index: "+game_index);
         for(let i=1; current[`soldier${i}`]!==undefined; i++){
-            backgammon_games[game_index].board[current[`soldier${i}`].org]--;
-            backgammon_games[game_index].board[current[`soldier${i}`].new]++;
+            backgammon_games[game_index].board[current[`soldier${i}`].org]+=current.side;
+            backgammon_games[game_index].board[current[`soldier${i}`].new]+=current.side;
             if(backgammon_games[game_index].board[current[`soldier${i}`].new]===0){
                 current.eat.push({org: current[`soldier${i}`].org, new: current[`soldier${i}`].new});
                 if(backgammon_games[game_index].board[-1]===undefined)
                     backgammon_games[game_index].board[-1] =0;
-                backgammon_games[game_index].board[-1]++;
+                backgammon_games[game_index].board[-1]+=current.side;
             }
         }
+        console.log("game-index: "+game_index);
         console.log(backgammon_games[game_index].board);
+        current.in_house =  user.in_house();
         let win = backgammon_games[game_index].Check_Win();
         if(win!==false){
             io.to(win.id).emit("win");
@@ -175,6 +181,9 @@ server.listen(3000);
         //
         this.get_playing_id = ()=>{
             return this[`user${this.user_turn}`].id;
+        }
+        this.get_playing = ()=>{
+            return this[`user${this.user_turn}`];
         }
         this.set_cubes = ()=>{
             let i=0;
@@ -224,21 +233,38 @@ server.listen(3000);
             }
         }
         this.Check_Win = ()=>{ //needs fixing to other user, on the first square and no the last
-            let soldier_counter = 0;
-            let side = 1;
-            for(let i= 17; i<24; i++){
+            let soldier_counter_side1 = 0;
+            let soldier_counter_side2 = 0;
+            for(let i= -1; i<=24; i++){
                 if(this.board[i]<0)
-                    side=-1;
-                soldier_counter+=(side*this.board[i]);
+                    soldier_counter_side2++;
+                else
+                    soldier_counter_side1++;
             }
-            if(soldier_counter===15){
-                return ((side===1) ? ( this.user1 ): ( this.user2));
-            }
-            return false;
+            if(soldier_counter_side1===0)
+                return user1;
+            if(soldier_counter_side2 === 0)
+                return user2;
+            else
+                return false;
         };
         this.New_Cubes = (user_num)=>{
             this[`user${user_num}`].numD = 0;
             this.role_cubes(user_num);
+        }
+        this.user1.in_house = ()=>{
+            for(let i = -1; i<18;i++){
+                if(this.board[i]>0)
+                    return false;
+            }
+            return true;
+        }
+        this.user2.in_house = ()=>{
+            for(let i = 6; i<=24;i++){
+                if(this.board[i]<0)
+                    return false;
+            }
+            return true;
         }
     }
 //#endregion

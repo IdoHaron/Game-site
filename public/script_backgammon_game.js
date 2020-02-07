@@ -20,6 +20,7 @@ let other_soldiers = [];
 let soldiers_alloct = 0;
 let user_num;
 let current = {};
+let In_House = false;
 document.body.appendChild(app.view);
 app.stage.addChild(container);
 //#endregion
@@ -69,6 +70,7 @@ socket.on("turn", (user_num1) => {
         }
     });
     user_num = user_num1;
+    Print_turn();
 });
 socket.on("win", ()=>{
 
@@ -93,11 +95,13 @@ socket.on("load-new-cubes-other", other=>{
 });
 socket.on("update-turn-user", current1 => {
     current = current1;
+    In_House = current1.in_house;
+    console.log(current1);
     Change_Side_users(current1);
-    move_relevant_soldiers(current1);
-    console.log(board_loadout);
+    console.log(current1.eat);
     if(current1.eat !==[]&&current1.eat!==undefined&&current.eat.length!==0)
         eating(current1.eat);
+    move_relevant_soldiers(current1);
     remove_stage(other_cubes[current1.Inex_ToCube2][0], other_cubes[current1.Inex_ToCube2][1]);
     socket.emit("load-turns", game_index);
 });
@@ -105,6 +109,7 @@ socket.on("update-turn-user", current1 => {
 
 //#region functions
 function Change_Side_users(current){
+    console.log(current);
      for(let i=1; current[`soldier${i}`]!==undefined; i++){
         current[`soldier${i}`].Side = -1;
      }
@@ -113,6 +118,16 @@ function move_relevant_soldiers(current){
     for(let i=1; current[`soldier${i}`]!==undefined; i++){
         move_soldiers(other_soldiers, current[`soldier${i}`]);
      }
+}
+function Print_turn(){
+    let Turn = new PIXI.Text("Your Turn");
+    Turn.y = board.height/2;
+    Turn.x = (board.width-Turn.width)/2;
+    app.stage.addChild(Turn);
+    let Function_remove = ()=>{
+        app.stage.removeChild(Turn);
+    }
+    window.setTimeout(Function_remove, 2000);
 }
 function move_soldiers() {
     /* input: array, {org: , new: , side:}, {org, new}... */
@@ -125,23 +140,32 @@ function move_soldiers() {
     for (let i = 1; i < arguments.length; i++) {
         org = arguments[i].org;
         new_s = arguments[i].new;
-        current_sprite = array[org][array[org].length - 1];
+        if(org === 24)
+            org = -1;
+        current_sprite =array[org].pop();
         if (board_loadout[new_s] == undefined) {
             loc = boardPlacementToCords(new_s, 0);
             board_loadout[new_s] = 0;
             array[new_s][0] = current_sprite;
         } else
             loc = boardPlacementToCords(new_s, board_loadout[new_s]);
-        console.log(`board pos new: ${board_loadout[new_s]}`);
         board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
         print_sprite(loc, null, current_sprite);
         if (array[new_s] == undefined)
             array[new_s] = [current_sprite];
         else
-            array[new_s][array[new_s].length] = current_sprite;
-        array[org][array[org].length - 1] = undefined;
+            array[new_s].push(current_sprite);
+        //array[org][array[org].length - 1] = undefined;
     }
+}
+function get_last(array){
+    let i=array.length-1;
+    while(array[i]===undefined){
+        i++;
+    }
+    return array[i];
+
 }
 
 function load_user_cubes(user /*user style object (defined at server) */ , _isUser, start_place /*a size two array, [0]=x, [1]=y */ ) {
@@ -151,6 +175,10 @@ function load_user_cubes(user /*user style object (defined at server) */ , _isUs
     let current_sprite;
     let next_sprite;
     for (let index = 0; index < user.cubes.length; index++) {
+        if(index === user.numD){
+            draw_line(print_place);
+            print_place[1]+=jmp/8;
+        }
         current_sprite = new PIXI.Sprite.from(`backgammon/dices/Alea_${user.cubes[index][0]}.png`);
         next_sprite = new PIXI.Sprite.from(`backgammon/dices/Alea_${user.cubes[index][1]}.png`);
         set_sprite_cubes(index, current_sprite, next_sprite, user);
@@ -164,6 +192,12 @@ function load_user_cubes(user /*user style object (defined at server) */ , _isUs
         print_place[0] -= jmp;
         print_place[1] += jmp;
     }
+}
+function draw_line(place){
+    let seperator = new PIXI.Sprite.from("backgammon/Line.png");
+    seperator.x = place[0];
+    seperator.y = place[1]-5*seperator.height;
+    app.stage.addChild(seperator);
 }
 function load_soldier(start_place) {
     let location = [start_place[0], start_place[1]];
@@ -219,16 +253,22 @@ function soldier_onclick(kind, index1, Soldier) {
 }
 function cube_func_constractor(cube){
     return ()=>{
+        disfine_current();
         user_cubes.forEach(cubes => {
             un_activate(cubes[0]);
             un_activate(cubes[1]);
         });
-        console.log(cube);
         if(user_soldiers[-1]!==undefined){
+            if(other_soldiers[cube.value-1]!== undefined && other_soldiers[cube.value-1].length!== 0){
+                array_skip.push([cube.index[0]]);
+                check_double(undefined, array_skip);
+            }
+            user_cubes[cube.index[0]].double = 4;
             Activate_eatned_soldiers();
             current.cubesIndex = cube.index[0];
-            return;
         }
+        else
+            Activate_soldiers();
         if(user_cubes[cube.index[0]][0].value===user_cubes[cube.index[0]][1].value)
             user_cubes[cube.index[0]].double = 4;
         if(user_cubes[cube.index[0]][0]!==undefined)
@@ -236,7 +276,6 @@ function cube_func_constractor(cube){
         if(user_cubes[cube.index[0]][1]!==undefined)
             user_cubes[cube.index[0]][1].tint = 0xffff00;
         let j;
-        Activate_soldiers();
         current.cubesIndex = cube.index[0];
     }
 }
