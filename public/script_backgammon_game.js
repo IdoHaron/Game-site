@@ -4,6 +4,11 @@ const socket = io.connect("http://localhost:3000");
 const app = new PIXI.Application({
     resizeTo: window
 });
+/*
+    soldiers added properties:
+        board_place: [stand, numInStand]
+
+*/
 let width = window.innerWidth;
 let board_loadout = [2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2];
 //let board_loadout= [5,0, 0,0,-3, 0, -5, 0, 0, 0, 0, 2, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
@@ -19,6 +24,7 @@ let user_soldiers = []; //Two dimantional array- placement and num in placment->
 let other_soldiers = [];
 let soldiers_alloct = 0;
 let user_num;
+let seperator = []; //0 = user, 1 = other
 let current = {};
 let In_House = false;
 document.body.appendChild(app.view);
@@ -58,19 +64,17 @@ socket.on("close-page", () => {
     window.close();
 });
 socket.on("turn", (user_num1) => {
+    Print_turn();
     if(user_soldiers[-1]!==undefined){
         turn_eatened();
         return;
     }
     current = {};
-    user_cubes.forEach(cube => {
-        if (cube !== undefined) {
-            Activate(cube[0]);
-            Activate(cube[1]);
-        }
-    });
+    if(!Activate_ligal_cube()){
+        socket.emit("Re-role-cubes", user_num, game_index);
+        return;
+    }
     user_num = user_num1;
-    Print_turn();
 });
 socket.on("win", ()=>{
 
@@ -81,6 +85,7 @@ socket.on("lose", ()=>{
 socket.on("load-new-cubes", user=>{
     if(user_cubes !== undefined)
         remove_cubes(true, false);
+    console.log(user_cubes);
     let loc = [0, 0];
     load_user_cubes(user,true, loc);
     return ;
@@ -89,8 +94,9 @@ socket.on("load-new-cubes", user=>{
 socket.on("load-new-cubes-other", other=>{
     if(other_cubes !== undefined)
         remove_cubes(false, true);
-    let loc = [(app.screen.width - board.width) / 2 + board.height / 40, board.height / 40];
-    load_user_cubes(other,false, loc);
+    console.log(other_cubes);
+    loc = [(app.screen.width + board.width) / 2, 0];
+    load_user_cubes(other, false, loc);
     return ;
 });
 socket.on("update-turn-user", current1 => {
@@ -148,7 +154,7 @@ function move_soldiers() {
             board_loadout[new_s] = 0;
             array[new_s][0] = current_sprite;
         } else
-            loc = boardPlacementToCords(new_s, board_loadout[new_s]);
+            loc = boardPlacementToCords(new_s, Math.abs(board_loadout[new_s]));
         board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
         print_sprite(loc, null, current_sprite);
@@ -175,7 +181,7 @@ function load_user_cubes(user /*user style object (defined at server) */ , _isUs
     let current_sprite;
     let next_sprite;
     for (let index = 0; index < user.cubes.length; index++) {
-        if(index === user.numD){
+        if(index === user.numD&&user.numD!==0){
             draw_line(print_place);
             print_place[1]+=jmp/8;
         }
@@ -194,10 +200,12 @@ function load_user_cubes(user /*user style object (defined at server) */ , _isUs
     }
 }
 function draw_line(place){
-    let seperator = new PIXI.Sprite.from("backgammon/Line.png");
-    seperator.x = place[0];
-    seperator.y = place[1]-5*seperator.height;
-    app.stage.addChild(seperator);
+    let seperator1;
+    seperator1 = new PIXI.Sprite.from("backgammon/Line.png");
+    seperator1.x = place[0];
+    seperator1.y = place[1]-5*seperator1.height;
+    app.stage.addChild(seperator1);
+    seperator.push(seperator1);
 }
 function load_soldier(start_place) {
     let location = [start_place[0], start_place[1]];
@@ -294,6 +302,10 @@ function possible_move(Soldier, cubes) {
             Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
         }
         if (cubes[1] !== undefined) {
+            if(!Check_CubeVal_ligality(cubes[1].value)){
+                socket.emit("Re-role-cubes", user_num, game_index);
+                return;
+            }
             stand = Soldier.board_place[0] + cubes[1].value;
             num_in_stand = board_loadout[stand];
             Demo_Place(demo_place1, Soldier, stand, num_in_stand, demo_place, cubes[1]);

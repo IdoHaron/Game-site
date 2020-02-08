@@ -178,10 +178,9 @@ function eating(eatened){
 function turn_eatened(){
     let soldier = user_soldiers[-1][user_soldiers[-1].length-1];
     board_loadout[-1]++;
-    if(check_double(soldier)==false){
-        user_soldiers[-1].push(soldier);
-        board_loadout[-1]++;
+    if(!Activate_ligal_cube()){
         socket.emit("Re-role-cubes", user_num, game_index);
+        return;
     }
 }
 function move_eatened(place){
@@ -271,12 +270,14 @@ function remove_cubes(remove_user, remove_other){
             remove_stage(user_cubes[i][1], user_cubes[i][0]);
             user_cubes[i].pop();
             user_cubes[i].pop();
+            remove_stage(seperator[0]);
         }
     if(remove_other===true)
         for(let i=0; i<other_cubes.length; i++){
             remove_stage(other_cubes[i][1], other_cubes[i][0]);
             other_cubes[i].pop();
             other_cubes[i].pop();
+            remove_stage(seperator[1]);
         }
 }
 function update_current(original_place, new_place, number_of_cells){
@@ -342,4 +343,43 @@ function move_To_construct(location, demo_place, stand_org, stand_new, cube, uns
             user_soldiers[stand_new][user_soldiers[stand_new].length] = demo_place.original;
         update_current(stand_org, stand_new, 2);
     }
+}
+function Activate_ligal_cube(){
+    let cube_Activated= false;
+    user_cubes.forEach(cube=>{
+        if(cube===undefined||cube.length===0||cube[0]===undefined)
+            return;
+        if(Check_CubeVal_ligality(cube[0].value)){
+            cube_Activated = true;
+            Activate(cube[0]);
+            Activate(cube[1]);
+        }
+    });
+    return cube_Activated;
+}
+function Check_CubeVal_ligality(value){
+    let ligal = false;
+    if(board_loadout[-1]!==undefined){
+        if(board_loadout[-1+value]<-1)
+            return false;
+        return true;
+    }
+    user_soldiers.forEach(soldier_array=>{
+
+        if(soldier_array===undefined)
+            return;
+        soldier_array.forEach(element=>{        
+            console.log(element);
+            if(element===undefined)
+                return;
+            if(((element.board_place[0]+value)>=24&&!In_House))
+                return;
+            if((element.board_place[0]+value)>=24)
+                ligal = true;
+            else if(board_loadout[element.board_place[0]+value]>=-1)
+                ligal = true;
+        })
+
+    });
+    return ligal;
 }
