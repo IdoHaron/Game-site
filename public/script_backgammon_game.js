@@ -11,7 +11,6 @@ const app = new PIXI.Application({
 */
 let width = window.innerWidth;
 let board_loadout = [2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2];
-//let board_loadout= [5,0, 0,0,-3, 0, -5, 0, 0, 0, 0, 2, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
 app.view.style.height = window.innerHeight + 'px';
 app.view.style.width = window.innerWidth + 'px';
 const container = new PIXI.Container();
@@ -22,6 +21,7 @@ let num_double; //the number of spacificly allocated cubes.
 let other_cubes = [];
 let user_soldiers = []; //Two dimantional array- placement and num in placment-> points to the fitting sprites.
 let other_soldiers = [];
+let other_current = {};
 let soldiers_alloct = 0;
 let user_num;
 let seperator = []; //0 = user, 1 = other
@@ -39,6 +39,8 @@ const soldier = {
     user: new PIXI.Sprite.from("backgammon/soldiers/piece-user.png"),
     other: new PIXI.Sprite.from("backgammon/soldiers/piece-other.png")
 };
+user_soldiers[-1] = [];
+board_loadout[-1] = 0;
 board.width = app.screen.width * board_ratio;
 board.height = app.screen.height;
 board.x = (app.screen.width - board.width) / 2;
@@ -46,7 +48,8 @@ board.x = (app.screen.width - board.width) / 2;
 
 //#region comunication
 socket.on("get_info", () => {
-    socket.emit("Backgammon-userInfo", sessionStorage.getItem("index"), game_index);
+    RockPaerSiccorss();
+    //socket.emit("Backgammon-userInfo", sessionStorage.getItem("index"), game_index);
 });
 socket.on("backgammon-boardLoad", (user, other) => {
     let loc = [0, 0];
@@ -64,48 +67,52 @@ socket.on("close-page", () => {
     window.close();
 });
 socket.on("turn", (user_num1) => {
+    user_num = user_num1;
     Print_turn();
-    if(user_soldiers[-1]!==undefined){
+    if (user_soldiers[-1] !== undefined) {
         turn_eatened();
         return;
     }
     current = {};
-    if(!Activate_ligal_cube()){
+    if (!Activate_ligal_cube()) {
         socket.emit("Re-role-cubes", user_num, game_index);
         return;
     }
-    user_num = user_num1;
 });
-socket.on("win", ()=>{
+socket.on("win", () => {
 
 });
-socket.on("lose", ()=>{
+socket.on("lose", () => {
 
 });
-socket.on("load-new-cubes", user=>{
-    if(user_cubes !== undefined)
+socket.on("load-new-cubes", user => {
+    if (user_cubes !== undefined) {
+        console.log("load-new-cubes-->> delete user_cubes");
         remove_cubes(true, false);
+    }
     console.log(user_cubes);
     let loc = [0, 0];
-    load_user_cubes(user,true, loc);
-    return ;
+    load_user_cubes(user, true, loc);
+    return;
 });
 
-socket.on("load-new-cubes-other", other=>{
-    if(other_cubes !== undefined)
+socket.on("load-new-cubes-other", other => {
+    console.log("load-new-cubes-other");
+    if (other_cubes !== undefined)
         remove_cubes(false, true);
     console.log(other_cubes);
     loc = [(app.screen.width + board.width) / 2, 0];
     load_user_cubes(other, false, loc);
-    return ;
+    return;
 });
 socket.on("update-turn-user", current1 => {
+    other_current = current1;
     current = current1;
     In_House = current1.in_house;
     console.log(current1);
     Change_Side_users(current1);
     console.log(current1.eat);
-    if(current1.eat !==[]&&current1.eat!==undefined&&current.eat.length!==0)
+    if (current1.eat !== [] && current1.eat !== undefined && current.eat.length !== 0)
         eating(current1.eat);
     move_relevant_soldiers(current1);
     remove_stage(other_cubes[current1.Inex_ToCube2][0], other_cubes[current1.Inex_ToCube2][1]);
@@ -114,27 +121,30 @@ socket.on("update-turn-user", current1 => {
 //#endregion
 
 //#region functions
-function Change_Side_users(current){
+function Change_Side_users(current) {
     console.log(current);
-     for(let i=1; current[`soldier${i}`]!==undefined; i++){
+    for (let i = 1; current[`soldier${i}`] !== undefined; i++) {
         current[`soldier${i}`].Side = -1;
-     }
-}
-function move_relevant_soldiers(current){
-    for(let i=1; current[`soldier${i}`]!==undefined; i++){
-        move_soldiers(other_soldiers, current[`soldier${i}`]);
-     }
-}
-function Print_turn(){
-    let Turn = new PIXI.Text("Your Turn");
-    Turn.y = board.height/2;
-    Turn.x = (board.width-Turn.width)/2;
-    app.stage.addChild(Turn);
-    let Function_remove = ()=>{
-        app.stage.removeChild(Turn);
     }
-    window.setTimeout(Function_remove, 2000);
 }
+
+function move_relevant_soldiers(current) {
+    for (let i = 1; current[`soldier${i}`] !== undefined; i++) {
+        move_soldiers(other_soldiers, current[`soldier${i}`]);
+    }
+}
+
+function Print_turn() {
+    let Turn = new PIXI.Text("Your Turn");
+    Turn.y = board.height / 2;
+    Turn.x = (board.width - Turn.width) / 2;
+    app.stage.addChild(Turn);
+    app.stage.removeChild(Turn);
+
+    /*let Function_remove = () => {    }
+    window.setTimeout(Function_remove, 2000);*/
+}
+
 function move_soldiers() {
     /* input: array, {org: , new: , side:}, {org, new}... */
     console.log(arguments);
@@ -146,9 +156,9 @@ function move_soldiers() {
     for (let i = 1; i < arguments.length; i++) {
         org = arguments[i].org;
         new_s = arguments[i].new;
-        if(org === 24)
+        if (org === 24)
             org = -1;
-        current_sprite =array[org].pop();
+        current_sprite = array[org].pop();
         if (board_loadout[new_s] == undefined) {
             loc = boardPlacementToCords(new_s, 0);
             board_loadout[new_s] = 0;
@@ -165,14 +175,7 @@ function move_soldiers() {
         //array[org][array[org].length - 1] = undefined;
     }
 }
-function get_last(array){
-    let i=array.length-1;
-    while(array[i]===undefined){
-        i++;
-    }
-    return array[i];
 
-}
 
 function load_user_cubes(user /*user style object (defined at server) */ , _isUser, start_place /*a size two array, [0]=x, [1]=y */ ) {
     let print_place = start_place;
@@ -181,9 +184,9 @@ function load_user_cubes(user /*user style object (defined at server) */ , _isUs
     let current_sprite;
     let next_sprite;
     for (let index = 0; index < user.cubes.length; index++) {
-        if(index === user.numD&&user.numD!==0){
+        if (index === user.numD && user.numD !== 0) {
             draw_line(print_place);
-            print_place[1]+=jmp/8;
+            print_place[1] += jmp / 8;
         }
         current_sprite = new PIXI.Sprite.from(`backgammon/dices/Alea_${user.cubes[index][0]}.png`);
         next_sprite = new PIXI.Sprite.from(`backgammon/dices/Alea_${user.cubes[index][1]}.png`);
@@ -199,14 +202,16 @@ function load_user_cubes(user /*user style object (defined at server) */ , _isUs
         print_place[1] += jmp;
     }
 }
-function draw_line(place){
+
+function draw_line(place) {
     let seperator1;
     seperator1 = new PIXI.Sprite.from("backgammon/Line.png");
     seperator1.x = place[0];
-    seperator1.y = place[1]-5*seperator1.height;
+    seperator1.y = place[1] - 5 * seperator1.height;
     app.stage.addChild(seperator1);
     seperator.push(seperator1);
 }
+
 function load_soldier(start_place) {
     let location = [start_place[0], start_place[1]];
     let Sprite_Soldier;
@@ -259,29 +264,30 @@ function soldier_onclick(kind, index1, Soldier) {
 
     }
 }
-function cube_func_constractor(cube){
-    return ()=>{
+
+function cube_func_constractor(cube) {
+    return () => {
         disfine_current();
         user_cubes.forEach(cubes => {
             un_activate(cubes[0]);
             un_activate(cubes[1]);
         });
-        if(user_soldiers[-1]!==undefined){
-            if(other_soldiers[cube.value-1]!== undefined && other_soldiers[cube.value-1].length!== 0){
+        if (user_soldiers[-1].length !== 0) {
+            console.log("cube_func_constractor - - [-1] !=== 0")
+            if (other_soldiers[cube.value - 1] !== undefined && other_soldiers[cube.value - 1].length !== 0) {
                 array_skip.push([cube.index[0]]);
                 check_double(undefined, array_skip);
             }
-            user_cubes[cube.index[0]].double = 4;
+            //user_cubes[cube.index[0]].double = 4;
             Activate_eatned_soldiers();
             current.cubesIndex = cube.index[0];
-        }
-        else
+        } else
             Activate_soldiers();
-        if(user_cubes[cube.index[0]][0].value===user_cubes[cube.index[0]][1].value)
+        if (user_cubes[cube.index[0]][0].value === user_cubes[cube.index[0]][1].value)
             user_cubes[cube.index[0]].double = 4;
-        if(user_cubes[cube.index[0]][0]!==undefined)
+        if (user_cubes[cube.index[0]][0] !== undefined)
             user_cubes[cube.index[0]][0].tint = 0xffff00;
-        if(user_cubes[cube.index[0]][1]!==undefined)
+        if (user_cubes[cube.index[0]][1] !== undefined)
             user_cubes[cube.index[0]][1].tint = 0xffff00;
         let j;
         current.cubesIndex = cube.index[0];
@@ -295,27 +301,37 @@ function possible_move(Soldier, cubes) {
     let num_in_stand;
     //let cube1_def = false let Both_defined = defined(cubes[0], cubes[1]);
     //if (Both_defined&& cubes[0].value === cubes[1].value) { stand = Soldier.board_place[0] + cubes[0].value; if (board_loadout[stand] > -2 && stand < 24) { num_in_stand = board_loadout[stand]; Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]); } Activate(Soldier);} 
-        //if(cubes.counter!==undefined){ stand = Soldier.board_place[0] + cubes[0].value; num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;    Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);}
-        if (cubes[0] !== undefined) {
-            stand = Soldier.board_place[0] + cubes[0].value;
-            num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;
-            Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
-        }
-        if (cubes[1] !== undefined) {
-            if(!Check_CubeVal_ligality(cubes[1].value)){
-                socket.emit("Re-role-cubes", user_num, game_index);
-                return;
-            }
-            stand = Soldier.board_place[0] + cubes[1].value;
-            num_in_stand = board_loadout[stand];
-            Demo_Place(demo_place1, Soldier, stand, num_in_stand, demo_place, cubes[1]);
-        }
+    //if(cubes.counter!==undefined){ stand = Soldier.board_place[0] + cubes[0].value; num_in_stand = board_loadout[stand];            // stand = Soldier.board_place[0] + cubes[0].value;    Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);}
+    if (cubes[0] !== undefined) {
+        stand = Soldier.board_place[0] + cubes[0].value;
+        num_in_stand = board_loadout[stand]; // stand = Soldier.board_place[0] + cubes[0].value;
+        Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
+    }
+    if (cubes[1] !== undefined) {
+        //if(!Check_CubeVal_ligality(cubes[1].value)){ socket.emit("Re-role-cubes", user_num, game_index); return; }
+        stand = Soldier.board_place[0] + cubes[1].value;
+        num_in_stand = board_loadout[stand];
+        Demo_Place(demo_place1, Soldier, stand, num_in_stand, demo_place, cubes[1]);
+    }
 }
 
+function DEBUG_RealoadCube() {
+    socket.emit("Re-role-cubes", user_num, game_index);
+}
 
+function DEBUG_EnterWinMod() {
+    In_House = true;
+}
 
+function DEBUG_ServerBoard() {
+    socket.emit("req-serverBoard", game_index);
+}
+socket.on("rec-ServerBoard", (board) => {
+    console.log(board);
+})
 //#endregion
 
-// TODO(Ido): server-side "chosen-cube" -> (value1, value2, user: user object)
-// TODO(Ido): organize code - seprate to files
-//TODO(Ido): fix turn problem
+
+
+//TODO(Ido): fix eating two problem - it works on entering double.
+/*TODO(Ido): the cubes let you double eat, soldier deletened after eating*/

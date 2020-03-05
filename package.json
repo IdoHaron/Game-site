@@ -12,9 +12,10 @@
   "dependencies": {
     "ejs": "^2.7.4",
     "express": "^4.17.1",
+    "jshint": "^2.11.0",
     "milsymbol": "^2.0.0",
     "nodemon": "^1.19.4",
-    "pixi.js": "^5.2.0",
+    "pixi.js": "^5.2.1",
     "socket.io": "^2.3.0",
     "sweetalert2": "^9.3.17"
   }

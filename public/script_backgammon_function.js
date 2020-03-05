@@ -4,45 +4,7 @@
  let eatened = false;
  let out_board = false;
  let array_skip = [];
- function boardPlacementToCords(stand /* int: start-0 */ , num_in_stand /* int: start-0 */ , start_place) {
-    const Sizer = 50;
-    if (num_in_stand === undefined)
-        num_in_stand = 0;
-    if (boardPlacementToCords.start_const === undefined)
-        boardPlacementToCords.start_const = [(app.screen.width - board.width) / 2 /*+board.width/Sizer*/ , board.height / Sizer]
-    let location = [boardPlacementToCords.start_const[0], boardPlacementToCords.start_const[1]];
-    if (start_place !== undefined)
-        boardPlacementToCords.start_const = start_place
-    let jmp_x = (board.width - (2 * location[1]) - soldier.user.width) / 13;
-    let jmp_y = soldier.user.height;
-    if(stand===-1){
-        location[0] = (app.screen.width - board.width) / 2 + board.width - jmp_x;
-        location[0] -= jmp_x * 7;
-        location[1] += jmp_y * (num_in_stand);
-        return location;
-    }
-    if(stand===24){
-        location[0] = (app.screen.width - board.width) / 2 + board.width - jmp_x;
-        location[0] -= jmp_x * 7;
-        location[1] = board.height - soldier.user.height - board.height / Sizer;
-        location[1] -= jmp_y * (num_in_stand);
-        return location;
-    }
-    if (stand < 12) {
-        location[0] = (app.screen.width - board.width) / 2 + board.width - jmp_x;
-        location[0] -= jmp_x * (stand + 1);
-        if (stand >= 6)
-            location[0] -= jmp_x;
-        location[1] += jmp_y * (num_in_stand);
-        return location;
-    } 
-    location[0] += jmp_x * (stand % 12 + 0.5);
-    if (stand >= 18)
-        location[0] += jmp_x;
-    location[1] = board.height - soldier.user.height - board.height / Sizer;
-    location[1] -= jmp_y * (num_in_stand);
-    return location;
-}
+ var user_cube;
 function Demo_Place(demo_place, Soldier, stand, num_in_stand, unselected_demo, cube) {
     In_Eatened_place = null;
     out_board = false;
@@ -91,20 +53,6 @@ function Activate_eatned_soldiers(){
     }
 }
 //#region Activators
-function un_activate(Sprite) {
-    if (Sprite === undefined)
-        return;
-    Sprite.interactive = false;
-    Sprite.tint = 0xFFFFFF;
-    Sprite.buttonMode = false;
-}
-
-function Activate(Sprite) {
-    if (Sprite === undefined)
-        return;
-    Sprite.interactive = true;
-    Sprite.buttonMode = true;
-}
 function Deactivate_selection(location, Sprite, eating){
     if(eating===true)
         Sprite.tint = 0xff0000;
@@ -117,32 +65,13 @@ function Deactivate_selection(location, Sprite, eating){
     if(!out_board)
         print_sprite(location, null, Sprite);
 }
-function print_sprite(location, size, im_Sprite) {
-    if(im_Sprite==undefined)
-        return;
-    im_Sprite.x = location[0];
-    im_Sprite.y = location[1];
-    if (size != null) {
-        im_Sprite.width = size[0];
-        im_Sprite.height = size[1];
-    }
-    app.stage.addChild(im_Sprite);
-}
 
-function remove_stage(){
-    for(let i =0; i<arguments.length; i++){
-        if(arguments[i]===undefined)
-            continue;
-        app.stage.removeChild(arguments[i]);
-    }
-}
-function defined(){
-    for(let i =0; i<arguments.length; i++)
-        if(arguments[i]===undefined)
-            return false;
-    return true;
-}
 function Activate_soldiers(){
+    if(user_soldiers[-1].length!==0){
+        console.log("here---- Activate soldiers -- [-1]");
+        Activate(user_soldiers[-1][user_soldiers[-1].length-1]);
+        return;
+    }
     for (let i = 0; i < 24; i++) {
         if(user_soldiers[i] === undefined)
             continue;
@@ -156,6 +85,7 @@ function un_activate_soldiers(){
         un_activate(user_soldiers[i][user_soldiers[i].length - 1]);
     }
 }
+
 //#endregion
 
 function set_sprite_cubes(i, current_sprite, next_sprite, user) {
@@ -177,13 +107,13 @@ function eating(eatened){
 }
 function turn_eatened(){
     let soldier = user_soldiers[-1][user_soldiers[-1].length-1];
-    board_loadout[-1]++;
     if(!Activate_ligal_cube()){
         socket.emit("Re-role-cubes", user_num, game_index);
         return;
     }
 }
 function move_eatened(place){
+    console.log("move eatend - - - ");
     if(user_soldiers[-1]===undefined)
         user_soldiers[-1] = [];
     if(board_loadout[-1]===undefined)
@@ -193,12 +123,14 @@ function move_eatened(place){
         soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-user.png");
     console.log(soldier);
     soldier.board_place = [-1, board_loadout[-1]];
+    console.log(`board place: ${board_loadout[-1]} and the soldier board-place: ${[-1, board_loadout[-1]]}`);
     board_loadout[place]--;
     remove_stage(soldier);
     print_sprite(boardPlacementToCords(-1, board_loadout[-1]), null, soldier);
     user_soldiers[-1].push(soldier);
     console.log(user_soldiers);
     board_loadout[-1]++;
+    console.log(board_loadout);
 }
 function check_double(soldier, cube_index_skip){
     let bool_s = false;
@@ -234,8 +166,11 @@ function Correct_board_loadout(){
 }
 function double_constractur(location, demo_place, stand_org, stand_new, cube, unselected_demo){
     return ()=>{
+        console.log("double_constructor.....---/+");
         let double = user_cubes[cube.index[0]].double;
         remove_stage(unselected_demo, demo_place, demo_place.original);
+        if(board_loadout[ unselected_demo.board_place[0]] === -1) 
+            RePrint_eatened_soldier(unselected_demo);
         console.log(other_soldiers[stand_new]);
         if(out_board)
             return;
@@ -243,17 +178,12 @@ function double_constractur(location, demo_place, stand_org, stand_new, cube, un
             Deactivate_selection(location, demo_place.original, true);
         else
             Deactivate_selection(location, demo_place.original);
-        if(double===1 || double === 3){
-            remove_stage(cube);
-            user_cubes[cube.index[0]][cube.index[1]] = undefined;
-        }
         user_cubes[cube.index[0]].double--;
         board_loadout[stand_org]--;
         let soldier=user_soldiers[stand_org].pop();
         soldier.board_place = demo_place.board_place;
         if (board_loadout[stand_new] < 0) {
             eat_enemy(stand_new);
-            board_loadout[stand_new]++;
         }
         board_loadout[stand_new]++;
         if (user_soldiers[stand_new] === undefined) 
@@ -262,71 +192,110 @@ function double_constractur(location, demo_place, stand_org, stand_new, cube, un
             user_soldiers[stand_new][user_soldiers[stand_new].length] = demo_place.original;
         let i;
         update_current(stand_org, stand_new, 4);
+        un_activate_soldiers();
+        let emition = Other_Turn_Cube_ligal(cube, false);
+        if(emition)
+            return;
+        if(double===1 || double === 3){
+            remove_stage(cube);
+            user_cubes[cube.index[0]][cube.index[1]] = undefined;
+        }
+        if(current.Num_defined>=4)
+            Emit_Current();
+        else Activate_soldiers();
+    }
+}
+function Other_Turn_Cube_ligal(cube, is_double){
+    let other = GET_OTHER_CUBE(cube);
+    if(other!==undefined&&!Check_CubeVal_ligality(other.value)){
+        remove_stage(other);
+        if(is_double){
+            remove_stage(cube);
+        }
+        user_cubes[cube.index[0]][cube.index[1]] = undefined;
+        user_cubes[other.index[0]][other.index[1]] = undefined;
+        Emit_Current();
+        return true;
     }
 }
 function remove_cubes(remove_user, remove_other){
-    if(remove_user===true)
+    if(remove_user===true){
         for(let i=0; i<user_cubes.length; i++){
-            remove_stage(user_cubes[i][1], user_cubes[i][0]);
+            remove_stage(user_cubes[i][0], user_cubes[i][1]);
             user_cubes[i].pop();
             user_cubes[i].pop();
-            remove_stage(seperator[0]);
         }
-    if(remove_other===true)
+        remove_stage(seperator[0]);
+    }
+    if(remove_other===true){
         for(let i=0; i<other_cubes.length; i++){
             remove_stage(other_cubes[i][1], other_cubes[i][0]);
             other_cubes[i].pop();
             other_cubes[i].pop();
-            remove_stage(seperator[1]);
         }
+        remove_stage(seperator[1]);
+    }
 }
 function update_current(original_place, new_place, number_of_cells){
     let i= 1;
     for(i=1; i<=number_of_cells; i++){
-        console.log("update_current :  ----- ---- ---");
-        console.log(current);
         if(current[`soldier${i}`]=== undefined){
             console.log(i);
             current[`soldier${i}`] = {
                 org: original_place,
                 new: new_place
             };
+            current.Num_defined = i;
             break;
         }
     }
-    console.log({i: i, number_of_cells: number_of_cells});
-    if(i>= number_of_cells){
-        console.log("all cells are full");
-        current.Inex_ToCube2 = current.cubesIndex;
-        current.cubesIndex = undefined;
-        un_activate_soldiers();
-        console.log(parseInt(game_index));
-        socket.emit(`turn-user-${user_num}`, current, parseInt(game_index));
-        return ;
-    }
-    Activate_soldiers();
+}
+function Emit_Current(){
+    current.Inex_ToCube2 = current.cubesIndex;
+    current.cubesIndex = undefined;
+    un_activate_soldiers();
+    console.log('Emit_current-emition');
+    socket.emit(`turn-user-${user_num}`, current, parseInt(game_index));
+    return ;
 }
 function eat_enemy(place){
     console.log(`place eatened ${place}`);
     let soldier = other_soldiers[place].pop();
     remove_stage(soldier);
-    if(other_soldiers[-1]===undefined){
+    if(other_soldiers[-1]===undefined)
         other_soldiers[-1] = [];
+    if(board_loadout[-1]===undefined)
         board_loadout[-1] = 0;
-    }
     soldier.board_place = [-1, other_soldiers[-1].length];
     other_soldiers[-1].push(soldier);
     board_loadout[place]++;
+    console.log(`board at place ${board_loadout[place]}`);
     board_loadout[-1]--;
     console.log(soldier);
     print_sprite(boardPlacementToCords(24, other_soldiers[-1].length-1), null, soldier);
 }
+function GET_OTHER_CUBE(cube){
+    if(cube.index[1]===0)
+        return user_cubes[cube.index[0]][1];
+    return user_cubes[cube.index[0]][0];
+}
+function RePrint_eatened_soldier(unselected_demo){
+    unselected_demo.tint = 0xffff00;
+    print_sprite(boardPlacementToCords(unselected_demo.board_place[0], unselected_demo.board_place[1]), null, unselected_demo);
+    other_soldiers[unselected_demo.board_place[0]][unselected_demo.board_place[1]] = unselected_demo;
+    un_activate(unselected_demo);
+}
 function move_To_construct(location, demo_place, stand_org, stand_new, cube, unselected_demo) {
     return () => {
+        console.log(unselected_demo);
         remove_stage(unselected_demo, demo_place, demo_place.original, cube);
+        if(board_loadout[ unselected_demo.board_place[0]] === -1) 
+            RePrint_eatened_soldier(unselected_demo);
         Deactivate_selection(location, demo_place.original);
-        user_cubes[cube.index[0]][cube.index[1]] = undefined;
         board_loadout[stand_org]--;
+        console.log("stand org: "+ stand_org);
+        console.log(board_loadout);
+            /*if(stand_org===-1) board_loadout[stand_org]--;*/
         let soldier=user_soldiers[stand_org].pop();
         if(out_board)
             return;
@@ -334,7 +303,6 @@ function move_To_construct(location, demo_place, stand_org, stand_new, cube, uns
         if (board_loadout[stand_new] < 0) {
             console.log("enters eating");
             eat_enemy(stand_new);
-            board_loadout[stand_new]++;
         }
         board_loadout[stand_new]++;
         if (user_soldiers[stand_new] === undefined) 
@@ -342,6 +310,15 @@ function move_To_construct(location, demo_place, stand_org, stand_new, cube, uns
         else
             user_soldiers[stand_new][user_soldiers[stand_new].length] = demo_place.original;
         update_current(stand_org, stand_new, 2);
+        un_activate_soldiers();
+        let emition = Other_Turn_Cube_ligal(cube, false);
+        if(emition)
+            return;
+        user_cubes[cube.index[0]][cube.index[1]] = undefined;
+        if(current.Num_defined>=2)
+            Emit_Current();
+        else 
+            Activate_soldiers();
     }
 }
 function Activate_ligal_cube(){
@@ -349,37 +326,12 @@ function Activate_ligal_cube(){
     user_cubes.forEach(cube=>{
         if(cube===undefined||cube.length===0||cube[0]===undefined)
             return;
-        if(Check_CubeVal_ligality(cube[0].value)){
+        let ligal = Check_CubeVal_ligality(cube[0].value);
+        if(Check_CubeVal_ligality(cube[0].value)||Check_CubeVal_ligality(cube[1].value)){
             cube_Activated = true;
             Activate(cube[0]);
             Activate(cube[1]);
         }
     });
     return cube_Activated;
-}
-function Check_CubeVal_ligality(value){
-    let ligal = false;
-    if(board_loadout[-1]!==undefined){
-        if(board_loadout[-1+value]<-1)
-            return false;
-        return true;
-    }
-    user_soldiers.forEach(soldier_array=>{
-
-        if(soldier_array===undefined)
-            return;
-        soldier_array.forEach(element=>{        
-            console.log(element);
-            if(element===undefined)
-                return;
-            if(((element.board_place[0]+value)>=24&&!In_House))
-                return;
-            if((element.board_place[0]+value)>=24)
-                ligal = true;
-            else if(board_loadout[element.board_place[0]+value]>=-1)
-                ligal = true;
-        })
-
-    });
-    return ligal;
 }

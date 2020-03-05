@@ -37,6 +37,34 @@ io.on('connection', (socket)=>{
         socket.emit("set-user", (users_num));
         users_num++;
     });
+    socket.on("RPS", (Select_RPS, index, game)=>{
+        if(parseInt(index)===backgammon_games[game].user1.index){
+            backgammon_games[game].user1.Select_RPS = Select_RPS;
+            backgammon_games[game].user1.id = socket.id;
+        }
+        else if(parseInt(index)===backgammon_games[game].user2.index){
+            backgammon_games[game].user2.Select_RPS = Select_RPS;
+            backgammon_games[game].user2.id = socket.id;
+        }
+        console.log(backgammon_games[game].user2.Select_RPS);
+        console.log(backgammon_games[game].user1.Select_RPS);
+        if( backgammon_games[game].user2.Select_RPS!==undefined &&  backgammon_games[game].user1.Select_RPS!=undefined){
+            let Player1= backgammon_games[game].RPS_Win();
+            if(Player1===null){
+                delete backgammon_games[game].user1.Select_RPS;
+                delete backgammon_games[game].user2.Select_RPS;
+                io.to(`${backgammon_games[game].user1.id}`).emit("get_info");
+                io.to(`${backgammon_games[game].user2.id}`).emit("get_info");
+                return;
+            }
+            if(Player1===backgammon_games[game].user2){
+                backgammon_games[game].swtich_users();
+            }
+            io.to(`${backgammon_games[game].user1.id}`).emit("backgammon-boardLoad", backgammon_games[game].user1, backgammon_games[game].user2);
+            io.to(`${backgammon_games[game].user2.id}`).emit("backgammon-boardLoad", backgammon_games[game].user2, backgammon_games[game].user1);
+            io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
+        }
+    })
     socket.on("connect_loby_backgammon", (index)=>{
         convert_SocketToUser[socket.id] = index;
         users[index].game = "backgammon";
@@ -67,7 +95,7 @@ io.on('connection', (socket)=>{
     });
 
     //#region backgammon_socket
-        socket.on("Backgammon-userInfo", (index, game)=>{
+        /*socket.on("Backgammon-userInfo", (index, game)=>{
             if(parseInt(index)=== backgammon_games[game].user1.index){
                 backgammon_games[game].user1.id = socket.id;
                 socket.emit("backgammon-boardLoad", backgammon_games[game].user1, backgammon_games[game].user2);
@@ -80,7 +108,7 @@ io.on('connection', (socket)=>{
             else
                 socket.emit("close-page");
             io.to(`${backgammon_games[game].user1.id}`).emit("turn", 1);
-        });
+        });*/
         socket.on("turn-user-1", (current, game_index)=>{
             current.side = 1;
             updtae_server_board(current, game_index, backgammon_games[game_index].user2);
@@ -89,6 +117,7 @@ io.on('connection', (socket)=>{
             io.to(backgammon_games[game_index].user2.id).emit("update-turn-user", current);
         });
         socket.on("load-turns", (game_index)=>{
+            console.log(""+backgammon_games[game_index].user_turn);
             io.to(backgammon_games[game_index].get_playing_id()).emit("turn",
              backgammon_games[game_index].user_turn);
         });
@@ -97,7 +126,7 @@ io.on('connection', (socket)=>{
             let user = backgammon_games[game_index][`user${users_num}`];
             io.to(user.id).emit("load-new-cubes",user);
             io.to(user.get_other().id).emit("load-new-cubes-other", user);
-            backgammon_games[game_index].user_turn.user_turn = user.get_other().Player;
+            backgammon_games[game_index].user_turn = user.get_other().Player;
             io.to(user.get_other().id).emit("turn", user.get_other().Player);
         })
         socket.on("turn-user-2", (current, game_index)=>{
@@ -109,6 +138,9 @@ io.on('connection', (socket)=>{
             console.log("turen user 2 ends");
             io.to(backgammon_games[game_index].user1.id).emit("update-turn-user", current);
         });
+        socket.on("req-serverBoard", (game_index)=>{
+            socket.emit("rec-ServerBoard", backgammon_games[game_index].board);
+        })
     //#endregion
 });
 
@@ -132,17 +164,23 @@ server.listen(3000);
         current.eat = [];
         console.log("game-index: "+game_index);
         for(let i=1; current[`soldier${i}`]!==undefined; i++){
-            backgammon_games[game_index].board[current[`soldier${i}`].org]+=current.side;
+            console.log(`original placement: ${backgammon_games[game_index].board[current[`soldier${i}`].org]} 
+            new placement: ${backgammon_games[game_index].board[current[`soldier${i}`].new]}
+            side: ${current.side}`);
+            backgammon_games[game_index].board[current[`soldier${i}`].org]-=current.side;
             backgammon_games[game_index].board[current[`soldier${i}`].new]+=current.side;
+            console.log(`original placement: ${backgammon_games[game_index].board[current[`soldier${i}`].org]} 
+            new placement: ${backgammon_games[game_index].board[current[`soldier${i}`].new]}`);
             if(backgammon_games[game_index].board[current[`soldier${i}`].new]===0){
+                console.log("gets here: Side: "+ current.side);
+                console.log(current);
+                backgammon_games[game_index].board[current[`soldier${i}`].new]+=current.side;
                 current.eat.push({org: current[`soldier${i}`].org, new: current[`soldier${i}`].new});
                 if(backgammon_games[game_index].board[-1]===undefined)
                     backgammon_games[game_index].board[-1] =0;
-                backgammon_games[game_index].board[-1]+=current.side;
+                backgammon_games[game_index].board[-1]-=current.side;
             }
         }
-        console.log("game-index: "+game_index);
-        console.log(backgammon_games[game_index].board);
         current.in_house =  user.in_house();
         let win = backgammon_games[game_index].Check_Win();
         if(win!==false){
@@ -154,7 +192,7 @@ server.listen(3000);
         this.user1 = user1;
         this.user2 =user2;
         this.game = game;
-        this.board = [2,0, 0,0,0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2, 5];
+        this.board = [2,0, 0,0,0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2];
         //setting new user propertys;
         this.user1.cubes =[]; //cube array
         this.user2.cubes =[]; 
@@ -179,6 +217,47 @@ server.listen(3000);
             return this.user1;
         }
         //
+        this.RPS_Win= ()=>{
+            if(this.user2.Select_RPS===this.user1.Select_RPS)
+                return null;
+            switch(this.user1.Select_RPS){
+                case "rock":
+                    if(this.user2.Select_RPS==="scissors")
+                        return this.user1;
+                    else
+                        return this.user2;
+                    break;
+                case "paper":
+                    if(this.user2.Select_RPS==="rock")
+                        return this.user1;
+                    else
+                        return this.user2;
+                    break;
+                case "scissors":
+                    if(this.user2.Select_RPS==="paper")
+                        return this.user1;
+                    else
+                        return this.user2;
+                    break;
+            };
+        }
+        this.swtich_users = ()=>{
+            let Saver = this.user1;
+            this.user1 = this.user2;
+            this.user1.get_other=()=>{
+                return Saver;
+            }
+            this.user2 = Saver;
+            this.user2.get_other = ()=>{
+                return this.user1;
+            }
+            this.get_playing_id = ()=>{
+                return this[`user${this.user_turn}`].id;
+            }
+            this.get_playing = ()=>{
+                return this[`user${this.user_turn}`];
+            }
+        }
         this.get_playing_id = ()=>{
             return this[`user${this.user_turn}`].id;
         }
@@ -249,6 +328,7 @@ server.listen(3000);
                 return false;
         };
         this.New_Cubes = (user_num)=>{
+            console.log("user-num: "+user_num);
             this[`user${user_num}`].numD = 0;
             this.role_cubes(user_num);
         }
