@@ -72,7 +72,7 @@ function Deactivate_selection(location, Sprite, eating) {
         remove_stage(other_soldiers[In_Eatened_place.stand][other_soldiers[In_Eatened_place.stand].length - 1]);
         location = boardPlacementToCords(In_Eatened_place.stand, 0);
     }
-    if (!out_board&&(Sprite.stand!==25))
+    if ((!out_board)&&(Sprite.stand!==25))
         print_sprite(location, null, Sprite);
 }
 

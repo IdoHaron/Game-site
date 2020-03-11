@@ -176,7 +176,9 @@ function move_soldiers() {
         else
             board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
-        if(new_s !==-2)
+        if(new_s ===-2)
+            remove_stage(current_sprite);
+        else
             print_sprite(loc, null, current_sprite);
         if (org === 24)
             org = -1;
