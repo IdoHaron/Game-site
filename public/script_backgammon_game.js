@@ -40,7 +40,11 @@ const soldier = {
     other: new PIXI.Sprite.from("backgammon/soldiers/piece-other.png")
 };
 user_soldiers[-1] = [];
+other_soldiers[-1] = [];
+other_soldiers[-2] = []; // outed soldiers
+user_soldiers[25] = [];
 board_loadout[-1] = 0;
+board_loadout[24] = 0;
 board.width = app.screen.width * board_ratio;
 board.height = app.screen.height;
 board.x = (app.screen.width - board.width) / 2;
@@ -75,6 +79,7 @@ socket.on("turn", (user_num1) => {
     }
     current = {};
     if (!Activate_ligal_cube()) {
+        console.log("no ligal cubes");
         socket.emit("Re-role-cubes", user_num, game_index);
         return;
     }
@@ -85,6 +90,7 @@ socket.on("win", () => {
 socket.on("lose", () => {
 
 });
+socket.on("rec-ServerCubes", cubes=>{ console.log(cubes); });
 socket.on("load-new-cubes", user => {
     if (user_cubes !== undefined) {
         console.log("load-new-cubes-->> delete user_cubes");
@@ -106,6 +112,7 @@ socket.on("load-new-cubes-other", other => {
     return;
 });
 socket.on("update-turn-user", current1 => {
+    console.clear();
     other_current = current1;
     current = current1;
     In_House = current1.in_house;
@@ -114,6 +121,7 @@ socket.on("update-turn-user", current1 => {
     console.log(current1.eat);
     if (current1.eat !== [] && current1.eat !== undefined && current.eat.length !== 0)
         eating(current1.eat);
+    console.log(current1);
     move_relevant_soldiers(current1);
     remove_stage(other_cubes[current1.Inex_ToCube2][0], other_cubes[current1.Inex_ToCube2][1]);
     socket.emit("load-turns", game_index);
@@ -139,10 +147,7 @@ function Print_turn() {
     Turn.y = board.height / 2;
     Turn.x = (board.width - Turn.width) / 2;
     app.stage.addChild(Turn);
-    app.stage.removeChild(Turn);
-
-    /*let Function_remove = () => {    }
-    window.setTimeout(Function_remove, 2000);*/
+    window.setTimeout(() => { app.stage.removeChild(Turn)   }, 2000);
 }
 
 function move_soldiers() {
@@ -156,18 +161,25 @@ function move_soldiers() {
     for (let i = 1; i < arguments.length; i++) {
         org = arguments[i].org;
         new_s = arguments[i].new;
-        if (org === 24)
-            org = -1;
-        current_sprite = array[org].pop();
+        if(org===24)    
+            current_sprite = array[-1].pop()
+        else    
+            current_sprite = array[org].pop();
         if (board_loadout[new_s] == undefined) {
             loc = boardPlacementToCords(new_s, 0);
             board_loadout[new_s] = 0;
             array[new_s][0] = current_sprite;
         } else
             loc = boardPlacementToCords(new_s, Math.abs(board_loadout[new_s]));
-        board_loadout[new_s] += arguments[i].Side;
+        if(arguments[i].Side===-1&&new_s===-1)
+            board_loadout[24] += arguments[i].Side;
+        else
+            board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
-        print_sprite(loc, null, current_sprite);
+        if(new_s !==-2)
+            print_sprite(loc, null, current_sprite);
+        if (org === 24)
+            org = -1;
         if (array[new_s] == undefined)
             array[new_s] = [current_sprite];
         else
@@ -179,7 +191,7 @@ function move_soldiers() {
 
 function load_user_cubes(user /*user style object (defined at server) */ , _isUser, start_place /*a size two array, [0]=x, [1]=y */ ) {
     let print_place = start_place;
-    const size = width / 35;
+    const size =  (app.stage.height/(user.cubes.length+1));
     const jmp = size + size / 10;
     let current_sprite;
     let next_sprite;
@@ -305,6 +317,8 @@ function possible_move(Soldier, cubes) {
     if (cubes[0] !== undefined) {
         stand = Soldier.board_place[0] + cubes[0].value;
         num_in_stand = board_loadout[stand]; // stand = Soldier.board_place[0] + cubes[0].value;
+        demo_place.board_place = [stand, num_in_stand];
+
         Demo_Place(demo_place, Soldier, stand, num_in_stand, demo_place1, cubes[0]);
     }
     if (cubes[1] !== undefined) {
@@ -315,20 +329,6 @@ function possible_move(Soldier, cubes) {
     }
 }
 
-function DEBUG_RealoadCube() {
-    socket.emit("Re-role-cubes", user_num, game_index);
-}
-
-function DEBUG_EnterWinMod() {
-    In_House = true;
-}
-
-function DEBUG_ServerBoard() {
-    socket.emit("req-serverBoard", game_index);
-}
-socket.on("rec-ServerBoard", (board) => {
-    console.log(board);
-})
 //#endregion
 
 

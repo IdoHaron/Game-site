@@ -33,6 +33,8 @@ function Check_CubeVal_ligality(value){
 
 function boardPlacementToCords(stand /* int: start-0 */ , num_in_stand /* int: start-0 */ , start_place) {
     const Sizer = 50;
+    if(stand ===25)
+        num_in_stand  = 5;
     if (num_in_stand === undefined)
         num_in_stand = 0;
     if (boardPlacementToCords.start_const === undefined)
@@ -95,6 +97,13 @@ function print_sprite(location, size, im_Sprite) {
         im_Sprite.height = size[1];
     }
     app.stage.addChild(im_Sprite);
+}
+
+function empty_cubeSet(cubeSet){
+    return !(cubeSet!==undefined&&(cubeSet[0]!==undefined|| cubeSet[1]!==undefined));
+}
+function soldierInUnSelected(unselected){
+    return (unselected !== undefined && unselected.board_place !== undefined && board_loadout[unselected.board_place[0]] === -1);
 }
 
 async function remove_stage(){
