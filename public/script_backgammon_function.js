@@ -7,6 +7,7 @@ var user_cube;
 function Demo_Place(demo_place, Soldier, stand, num_in_stand, unselected_demo, cube) {
     In_Eatened_place = null;
     out_board = false;
+    console.log({stand: stand});
     if (In_House && stand >= 24) {
         out_board = true;
         stand = 25;
@@ -185,6 +186,7 @@ function Correct_board_loadout() {
 
 function double_constractur(location, demo_place, stand_org, stand_new, cube, unselected_demo) {
     return () => {
+        demo_place.original.stand = stand_new;
         console.log({unselecteddemo: unselected_demo,demo_place: demo_place});
         let double = user_cubes[cube.index[0]].double;
         remove_stage(unselected_demo, demo_place, demo_place.original);
@@ -317,6 +319,7 @@ function RePrint_eatened_soldier(unselected_demo) {
 
 function move_To_construct(location, demo_place, stand_org, stand_new, cube, unselected_demo) {
     return () => {
+        demo_place.original.stand = stand_new;
         console.log({unselecteddemo_board_place: unselected_demo.board_place, demo_place: demo_place});
         remove_stage(unselected_demo, demo_place, demo_place.original, cube);
         Deactivate_selection(location, demo_place.original);

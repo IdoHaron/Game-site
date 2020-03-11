@@ -164,13 +164,10 @@ function updtae_server_board(current, game_index, user) {
     current.eat = [];
     console.log("game-index: " + game_index);
     for (let i = 1; current[`soldier${i}`] !== undefined; i++) {
-        console.log(`original placement: ${backgammon_games[game_index].board[current[`soldier${i}`].org]} 
-            new placement: ${backgammon_games[game_index].board[current[`soldier${i}`].new]}
-            side: ${current.side}`);
         backgammon_games[game_index].board[current[`soldier${i}`].org] -= current.side;
         backgammon_games[game_index].board[current[`soldier${i}`].new] += current.side;
-        console.log(`original placement: ${backgammon_games[game_index].board[current[`soldier${i}`].org]} 
-            new placement: ${backgammon_games[game_index].board[current[`soldier${i}`].new]}`);
+        if(current[`soldier${i}`].new===25)
+            console.log("gets_here");
         if (backgammon_games[game_index].board[current[`soldier${i}`].new] === 0) {
             console.log("gets here: Side: " + current.side);
             console.log(current);
@@ -198,6 +195,10 @@ function game(user1, user2, game) {
     this.user2 = user2;
     this.game = game;
     this.board = [2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2];
+    this.board[-1] =0;
+    this.board[-2] = 0;
+    this.board[24] =0;
+    this.board[25] = 0;
     //setting new user propertys;
     this.user1.cubes = []; //cube array
     this.user2.cubes = [];
