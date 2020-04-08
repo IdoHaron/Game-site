@@ -135,6 +135,7 @@ io.on('connection', (socket) => {
         io.to(backgammon_games[game_index].user1.id).emit("update-turn-user", current);
     });
     socket.on("req-serverBoard", (game_index) => {
+        console.log(backgammon_games[game_index].board);
         socket.emit("rec-ServerBoard", backgammon_games[game_index].board);
     })
     socket.on("ServerCubes", (game_index, user_num)=>{socket.emit("rec-ServerCubes", backgammon_games[game_index][`user${user_num}`].cubes)});
@@ -176,8 +177,7 @@ function updtae_server_board(current, game_index, user) {
                 org: current[`soldier${i}`].org,
                 new: current[`soldier${i}`].new
             });
-            if (backgammon_games[game_index].board[-1] === undefined)
-                backgammon_games[game_index].board[-1] = 0;
+
             backgammon_games[game_index].board[-1] -= current.side;
         }
     }
