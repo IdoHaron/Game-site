@@ -67,9 +67,9 @@ socket.on("backgammon-boardLoad", (user, other) => {
     soldier.other.zIndex = 1;
     load_soldier(loc);
 });
-socket.on("close-page", () => {
+/*socket.on("close-page", () => {
     window.close();
-});
+});*/
 socket.on("turn", (user_num1) => {
     user_num = user_num1;
     Print_turn();
@@ -162,7 +162,7 @@ function move_soldiers() {
         org = arguments[i].org;
         new_s = arguments[i].new;
         if(org===24)    
-            current_sprite = array[-1].pop()
+            current_sprite = array[-1].pop();
         else    
             current_sprite = array[org].pop();
         if (board_loadout[new_s] == undefined) {
@@ -176,9 +176,8 @@ function move_soldiers() {
         else
             board_loadout[new_s] += arguments[i].Side;
         board_loadout[org] -= arguments[i].Side;
-        if(new_s ===-2)
-            remove_stage(current_sprite);
-        else
+        remove_stage(current_sprite); // in previous version wasn't deleted, just moved, tried diffrent thing.
+        if(new_s !==-2)
             print_sprite(loc, null, current_sprite);
         if (org === 24)
             org = -1;
@@ -286,11 +285,11 @@ function cube_func_constractor(cube) {
             un_activate(cubes[0]);
             un_activate(cubes[1]);
         });
-        if (user_soldiers[-1].length !== 0) {
+        if (user_soldiers[-1].length !== 0) { // try and understand what's going on.
             console.log("cube_func_constractor - - [-1] !=== 0")
             if (other_soldiers[cube.value - 1] !== undefined && other_soldiers[cube.value - 1].length !== 0) {
                 array_skip.push([cube.index[0]]);
-                check_double(undefined, array_skip);
+                //check_double(undefined, array_skip);
             }
             //user_cubes[cube.index[0]].double = 4;
             Activate_eatned_soldiers();
@@ -303,7 +302,6 @@ function cube_func_constractor(cube) {
             user_cubes[cube.index[0]][0].tint = 0xffff00;
         if (user_cubes[cube.index[0]][1] !== undefined)
             user_cubes[cube.index[0]][1].tint = 0xffff00;
-        let j;
         current.cubesIndex = cube.index[0];
     }
 }

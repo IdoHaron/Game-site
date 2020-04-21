@@ -67,7 +67,7 @@ function Deactivate_selection(location, Sprite, eating) {
     if (eating === true)
         Sprite.tint = 0xff0000;
     else
-        Sprite.tint = 0xffff;
+        Sprite.tint  = 0xffff;
     if (In_Eatened_place !== null) {
         console.log("Deactivate_selection");
         remove_stage(other_soldiers[In_Eatened_place.stand][other_soldiers[In_Eatened_place.stand].length - 1]);
@@ -120,7 +120,7 @@ function eating(eatened) {
 }
 
 function turn_eatened() {
-    let soldier = user_soldiers[-1][user_soldiers[-1].length - 1];
+    //let soldier = user_soldiers[-1][user_soldiers[-1].length - 1];
     if (!Activate_ligal_cube()) {
         socket.emit("Re-role-cubes", user_num, game_index);
         return;
@@ -149,7 +149,7 @@ function move_eatened(place) {
     console.log(board_loadout);
 }
 
-function check_double(soldier, cube_index_skip) {
+/*function check_double(soldier, cube_index_skip) {
     let bool_s = false;
     for (let i = 0; i < user_cubes.length; i++) {
         if (cube_index_skip !== undefined && cube_index_skip.includes(i))
@@ -166,7 +166,7 @@ function check_double(soldier, cube_index_skip) {
         }
     }
     return bool_s;
-}
+}*/
 function Correct_board_loadout() {
     if (user_soldiers[-1] !== undefined) {
         board_loadout[-1] = user_soldiers[-1].length;
@@ -284,8 +284,8 @@ function Emit_Current() {
 }
 
 function eat_enemy(place) {
-    console.log(`place eatened ${place} -- eat_enemy`);
     let soldier = other_soldiers[place].pop();
+    console.log(`place eatened ${place} -- eat_enemy and soldier ${soldier} was deleted.`);
     remove_stage(soldier);
     if (other_soldiers[-1] === undefined)
         other_soldiers[-1] = [];
@@ -360,8 +360,7 @@ function Activate_ligal_cube() {
     user_cubes.forEach(cube => {
         if (empty_cubeSet(cube))
             return;
-        console.log(cube)
-        let ligal = Check_CubeVal_ligality(cube[0].value);
+        console.log(cube); 
         if (Check_CubeVal_ligality(cube[0].value) || Check_CubeVal_ligality(cube[1].value)) {
             cube_Activated = true;
             Activate(cube[0]);

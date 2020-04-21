@@ -17,8 +17,13 @@ socket.on("enter-backgammon-game", game_num => {
     sessionStorage.setItem("backgammon-game", `${game_num}`);
     window.location.replace(`/:backgammongame${game_num}`);
 });
-
+socket.on("users_left", (user1_id, user2_id)=>{
+    document.getElementById(user1_id).remove();
+    document.getElementById(user2_id).remove();
+})
 function Print_user(Player, id /*the socket.id*/ ) {
+    if(Player ===undefined||Player.In_Loby ==false)
+        return;
     let btn = document.createElement("button");
     btn.id = id;
     btn.innerHTML = Player.name;

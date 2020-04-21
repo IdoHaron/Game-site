@@ -25,7 +25,7 @@ app.get('/', (req, res) => {
     res.render('index')
 });
 app.get('/backgammon_Loby', (req, res) => {
-    users_num++;
+    users_num++; //?
     res.render('backgammon_Loby');
 });
 app.get("/:backgammongame", (req, res) => {
@@ -78,6 +78,7 @@ io.on('connection', (socket) => {
         socket.join("loby_backgammon");
         socket.to("loby_backgammon").emit("load-user", users[index], socket.id);
         backgammon_users[backgammon_users_num] = users[index];
+        backgammon_users[backgammon_users_num].In_Loby = true;
         backgammon_users[backgammon_users_num].index = index;
         backgammon_users[backgammon_users_num].id = socket.id; //saves the socket.id as a parameter
         backgammon_users_num++;
@@ -90,6 +91,10 @@ io.on('connection', (socket) => {
         users[convert_SocketToUser[socket.id]].opponent = convert_SocketToUser[id];
         users[convert_SocketToUser[id]].index = convert_SocketToUser[id];
         users[convert_SocketToUser[socket.id]].index = convert_SocketToUser[socket.id];
+        users[convert_SocketToUser[socket.id]].In_Loby= false;
+        socket.leave("loby_backgammon");
+        io.sockets.connected[id].leave("loby_backgammon");
+        io.to("loby_backgammon").emit("users_left", socket.id, id);
         backgammon_games[backgammon_games_num] = new game(users[convert_SocketToUser[id]], users[convert_SocketToUser[socket.id]], backgammon_games_num);
         backgammon_games[backgammon_games_num].set_cubes();
         io.to(id).emit("enter-backgammon-game", backgammon_games_num);
@@ -97,7 +102,8 @@ io.on('connection', (socket) => {
         backgammon_games_num++;
     })
     socket.on("disconnect", () => {
-        delete convert_SocketToUser[socket.id];
+        users[convert_SocketToUser[socket.id]] = undefined;
+        convert_SocketToUser[socket.id] = undefined;
     });
 
     //#region backgammon_socket
@@ -289,6 +295,28 @@ function game(user1, user2, game) {
                 this.cube_set++;
             }
         }
+        this.user1.in_house = () => {
+            for (let i = -1; i < 18; i++) {
+                if (this.board[i] > 0)
+                    return false;
+            }
+            return true;
+        }
+        this.user2.in_house = () => {
+            for (let i = 6; i <= 24; i++) {
+                if (this.board[i] < 0)
+                    return false;
+            }
+            return true;
+        }
+        this.Check_Win = () => { //needs fixing to other user, on the first square and no the last
+            if(this.board[25] === 15)
+                return user1;
+            if(this.board[-2] === 15)
+                return user2;
+            return false;
+            /* let soldier_counter_side1 = 0; let soldier_counter_side2 = 0; for (let i = -1; i <= 24; i++) { if (this.board[i] < 0) soldier_counter_side2++; else soldier_counter_side1++; } if (soldier_counter_side1 === 0) return user1; if (soldier_counter_side2 === 0) return user2; else return false;*/
+        };
     }
     this.get_playing_id = () => {
         return this[`user${this.user_turn}`].id;

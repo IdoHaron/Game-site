@@ -102,7 +102,7 @@ function print_sprite(location, size, im_Sprite) {
 function empty_cubeSet(cubeSet){
     return !(cubeSet!==undefined&&(cubeSet[0]!==undefined|| cubeSet[1]!==undefined));
 }
-function soldierInUnSelected(unselected){
+function soldierInUnSelected(unselected){ // check context.
     return (unselected !== undefined && unselected.board_place !== undefined && board_loadout[unselected.board_place[0]] === -1);
 }
 
