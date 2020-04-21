@@ -76,6 +76,7 @@ io.on('connection', (socket) => {
         users[index].game = "backgammon";
         socket.emit("load-users", backgammon_users);
         socket.join("loby_backgammon");
+        users[index].In_Loby = true;
         socket.to("loby_backgammon").emit("load-user", users[index], socket.id);
         backgammon_users[backgammon_users_num] = users[index];
         backgammon_users[backgammon_users_num].In_Loby = true;
@@ -102,7 +103,8 @@ io.on('connection', (socket) => {
         backgammon_games_num++;
     })
     socket.on("disconnect", () => {
-        users[convert_SocketToUser[socket.id]] = undefined;
+        if(users!==undefined)
+            users[convert_SocketToUser[socket.id]].In_Loby =false;
         convert_SocketToUser[socket.id] = undefined;
     });
 
