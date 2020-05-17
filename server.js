@@ -103,7 +103,7 @@ io.on('connection', (socket) => {
         backgammon_games_num++;
     })
     socket.on("disconnect", () => {
-        if(users!==undefined)
+        if(users!==undefined&&users[convert_SocketToUser[socket.id]]!==undefined)
             users[convert_SocketToUser[socket.id]].In_Loby =false;
         convert_SocketToUser[socket.id] = undefined;
     });
@@ -311,7 +311,7 @@ function game(user1, user2, game) {
             }
             return true;
         }
-        this.Check_Win = () => { //needs fixing to other user, on the first square and no the last
+        this.Check_Win = () => {    //needs fixing to other user, on the first square and no the last
             if(this.board[25] === 15)
                 return user1;
             if(this.board[-2] === 15)
