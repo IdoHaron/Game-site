@@ -1,5 +1,4 @@
-const socket =  io.connect("http://localhost:3000");
-
+const socket =  io.connect(process.env.PORT);
 let Player={name: null}; //the object with the players propertys
 async function get_name(Player){
     while(Player.name==null){
