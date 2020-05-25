@@ -1,4 +1,4 @@
-const socket =  io();
+const socket =  io(); //connect("localhost:")
 let Player={name: null}; //the object with the players propertys
 async function get_name(Player){
     while(Player.name==null){
