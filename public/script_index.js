@@ -1,4 +1,4 @@
-const socket =  io.connect(process.env.PORT);
+const socket =  io();
 let Player={name: null}; //the object with the players propertys
 async function get_name(Player){
     while(Player.name==null){

@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "Push_Heroku": "git add * \n git commit -m \" commit \" \n  git push heroku master"
   },
   "author": "ido haron",
   "license": "ISC",
