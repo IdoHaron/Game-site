@@ -73,8 +73,10 @@ function Deactivate_selection(location, Sprite, eating) {
         remove_stage(other_soldiers[In_Eatened_place.stand][other_soldiers[In_Eatened_place.stand].length - 1]);
         location = boardPlacementToCords(In_Eatened_place.stand, 0);
     }
-    if ((!out_board)&&(Sprite.stand!==25))
-        print_sprite(location, null, Sprite);
+    if ((!out_board)&&(Sprite.stand!==25)){ //reprints the eatended soldier
+        print_sprite(location, null, Sprite); // not the problem - at least not always.
+        console.log({InFunction: Deactivate_selection, activity: "reprints eatned soldier", stand:Sprite.stand, Sprite: Sprite });
+    }
 }
 
 function Activate_soldiers() {
@@ -307,9 +309,9 @@ function GET_OTHER_CUBE(cube) {
 }
 
 function RePrint_eatened_soldier(unselected_demo) {
-    if(unselected_demo.board_place[0]===25)
+    if(unselected_demo.board_place[0]===25) // make sure this is the correct statement, that it doesn't reprints the eatened soldier instead of the unslected one.
         return;
-    console.log("RePrint_eatened");
+    console.log({InFunction: "RePrint_eatened_soldier", board_place: unselected_demo.board_place[0], activity: "prints the suldier in the place"});
     let Soldier = new PIXI.Sprite.from("backgammon/soldiers/piece-other.png");
     Soldier.board_place = [unselected_demo.board_place[0], unselected_demo.board_place[1]];
     print_sprite(boardPlacementToCords(unselected_demo.board_place[0], unselected_demo.board_place[1]), null, Soldier);

@@ -130,8 +130,8 @@ io.on('connection', (socket) => {
         cube_reloads.user_stack.push(user);
         io.to(user.id).emit("load-new-cubes", user);
         io.to(user.get_other().id).emit("load-new-cubes-other", user);
-        backgammon_games[game_index].user_turn = user.get_other().Player;
-        io.to(user.get_other().id).emit("turn", user.get_other().Player);
+        backgammon_games[game_index].user_turn = user.get_other().Player; 
+        io.to(user.get_other().id).emit("turn", user.get_other().Player); // try and understand why it's the incorrect turn.
     })
     socket.on("turn-user-2", (current, game_index) => {
         game_index = parseInt(game_index);
