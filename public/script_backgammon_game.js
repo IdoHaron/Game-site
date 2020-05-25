@@ -1,6 +1,6 @@
 //import { Sprite } from "pixi.js";
 //#region set-app
-const socket = io.connect("http://localhost:3000");
+const socket = io();
 const app = new PIXI.Application({
     resizeTo: window
 });

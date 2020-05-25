@@ -1,4 +1,4 @@
-const socket = io.connect("http://localhost:3000");
+const socket = io();
 socket.on("get_info", () => {
     socket.emit("connect_loby_backgammon", parseInt(sessionStorage.getItem("index")))
 });
