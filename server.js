@@ -2,6 +2,7 @@ const http = require("http");
 const express = require("express");
 const app = express();
 const server = http.createServer(app);
+const PORT = process.env.PORT || 3000
 const io = require('socket.io')(server);
 const users = []; //the users by the allocated num in the window session
 const backgammon_users = [];
@@ -151,7 +152,7 @@ io.on('connection', (socket) => {
     //#endregion
 });
 
-server.listen(3000);
+server.listen(PORT);
 //#endregion
 
 //#region object-functions
