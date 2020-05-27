@@ -13,7 +13,7 @@ async function get_name(Player){
 socket.on("get_info", ()=>{
     get_name(Player);
     async function get_name(Player){
-        while(Player.name==null){
+        while(typeof Player.name!==String){
           await Swal.fire({
                 title: "Enter Name",
                 text: "Please enter your name",

@@ -9,6 +9,7 @@ function get_last(array) {
 function Check_CubeVal_ligality(value){
     let ligal = false;
     if(board_loadout[-1]>0){
+        console.log({Current_Function: "Check_CubeVal_ligality", index: (-1+value), board_Value: board_loadout[-1+value]});
         if(board_loadout[-1+value]<-1)
             return ligal;
         return !ligal;
