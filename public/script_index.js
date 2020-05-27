@@ -13,14 +13,16 @@ async function get_name(Player){
 socket.on("get_info", ()=>{
     get_name(Player);
     async function get_name(Player){
-        while(typeof Player.name!==String){
+        while(typeof Player.name!=="string"){
           await Swal.fire({
                 title: "Enter Name",
                 text: "Please enter your name",
                 input: "text",
                 confirmButtonText: "Enter"
             }).then(input=>{
-                Player.name = input.value;
+                if(input.value.trim() !=="")
+                    Player.name = input.value;
+                console.log({name: Player.name, type: typeof Player.name});
             });
         }
         socket.emit("create_user", Player);
